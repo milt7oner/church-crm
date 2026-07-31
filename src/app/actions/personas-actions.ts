@@ -19,7 +19,9 @@ export async function crearPersona(formData: {
   const supabase = await createServerClient()
 
   // 1. Validar que quien ejecuta la acción sea Pastor/Admin/Encargado
-  const { data: { user: currentUser } } = await supabase.auth.getUser()
+  const {
+    data: { user: currentUser },
+  } = await supabase.auth.getUser()
   if (!currentUser) return { error: 'No autenticado' }
 
   const { data: currentPersona } = await supabase
@@ -65,12 +67,60 @@ export async function crearPersona(formData: {
     rol_sistema: formData.tipoPersona === 'nuevo' ? null : formData.rolSistema || 'lider',
     auth_user_id: authUserId,
     lider_asignado_id: formData.tipoPersona === 'nuevo' ? formData.liderAsignadoId || null : null,
-    fecha_ingreso: formData.tipoPersona === 'nuevo' ? formData.fechaIngreso || new Date().toISOString().split('T')[0] : null,
+    fecha_ingreso:
+      formData.tipoPersona === 'nuevo'
+        ? formData.fechaIngreso || new Date().toISOString().split('T')[0]
+        : null,
     estado_consolidacion: formData.tipoPersona === 'nuevo' ? 'activo' : null,
   })
 
   if (insertError) {
     return { error: `Error en la DB: ${insertError.message}` }
+  }
+
+  revalidatePath('/admin/personas')
+  return { success: true }
+}
+
+// Server Action para reasignar masivamente integrantes a un líder
+export async function reasignarLider({
+  liderId,
+  personasIds,
+}: {
+  liderId: string
+  personasIds: string[]
+}) {
+  const supabase = await createServerClient()
+
+  // 1. Validar autenticación y permisos
+  const {
+    data: { user: currentUser },
+  } = await supabase.auth.getUser()
+  if (!currentUser) return { error: 'No autenticado' }
+
+  const { data: currentPersona } = await supabase
+    .from('personas')
+    .select('rol_sistema')
+    .eq('auth_user_id', currentUser.id)
+    .single()
+
+  const rolesPermitidos = ['super_admin', 'pastor', 'encargado']
+  if (!currentPersona || !rolesPermitidos.includes(currentPersona.rol_sistema)) {
+    return { error: 'No tienes permisos para reasignar personas.' }
+  }
+
+  if (!liderId || !personasIds || personasIds.length === 0) {
+    return { error: 'Debes seleccionar un líder y al menos un integrante.' }
+  }
+
+  // 2. Actualizar en la base de datos
+  const { error } = await supabase
+    .from('personas')
+    .update({ lider_asignado_id: liderId })
+    .in('id', personasIds)
+
+  if (error) {
+    return { error: `Error en la DB al reasignar: ${error.message}` }
   }
 
   revalidatePath('/admin/personas')
