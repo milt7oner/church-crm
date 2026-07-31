@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 
@@ -12,13 +12,20 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
+// 1. Configuramos el Viewport explícitamente para dispositivos móviles
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
+};
+
 export const metadata: Metadata = {
-  viewport: 'width=device-width, initial-scale=1, maximum-scale=1',
   title: "Centro Cristiano Casa del Rey Popayán",
   description: "Sistema de gestión e información institucional",
   icons: {
-    icon: "/Logo-Verde-sin-texto.png", // Icono en la pestaña del navegador
-    apple: "/Logo-Verde-sin-texto.png", // Para dispositivos Apple cuando guardan acceso directo
+    icon: "/Logo-Verde-sin-texto.png",
+    apple: "/Logo-Verde-sin-texto.png",
   },
 };
 
@@ -32,7 +39,9 @@ export default function RootLayout({
       lang="es"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col">{children}</body>
+      <body className="min-h-full bg-gray-50 text-gray-900 overflow-x-hidden">
+        {children}
+      </body>
     </html>
   );
 }
