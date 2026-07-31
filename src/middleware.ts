@@ -33,28 +33,22 @@ export async function middleware(request: NextRequest) {
   const { data: { user } } = await supabase.auth.getUser()
   const pathname = request.nextUrl.pathname
 
-  // Si la ruta es pública (assets, api pública), dejamos pasar
+  // Si la ruta es pública (assets, archivos estáticos), dejamos pasar
   if (pathname.startsWith('/_next') || pathname.includes('.')) {
     return response
   }
 
-  // 2. Si no está logueado y quiere entrar a rutas protegidas
-  if (!user && (pathname.startsWith('/admin') || pathname.startsWith('/lider') || pathname.startsWith('/cambiar-password'))) {
+  // 2. Si NO está logueado y quiere acceder a cualquier ruta protegida
+  const rutasProtegidas = ['/admin', '/lider', '/dashboard', '/cambiar-password']
+  const requiereAuth = rutasProtegidas.some((ruta) => pathname.startsWith(ruta))
+
+  if (!user && requiereAuth) {
     return NextResponse.redirect(new URL('/login', request.url))
   }
 
-  // 3. Si está logueado y va a /login, redirigir según su rol
-  if (user && pathname === '/login') {
-    const { data: persona } = await supabase
-      .from('personas')
-      .select('rol_sistema')
-      .eq('auth_user_id', user.id)
-      .single()
-
-    if (['super_admin', 'pastor', 'encargado'].includes(persona?.rol_sistema)) {
-      return NextResponse.redirect(new URL('/admin/dashboard', request.url))
-    }
-    return NextResponse.redirect(new URL('/lider/mis-consolidados', request.url))
+  // 3. Si SÍ está logueado y entra a /login o a la raíz (/), lo enviamos a /dashboard
+  if (user && (pathname === '/login' || pathname === '/')) {
+    return NextResponse.redirect(new URL('/dashboard', request.url))
   }
 
   // 4. Protección específica para /admin/* (Solo Administradores, Pastores y Encargados)
@@ -76,5 +70,12 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/admin/:path*', '/lider/:path*', '/cambiar-password', '/login'],
+  matcher: [
+    '/',
+    '/dashboard',
+    '/admin/:path*',
+    '/lider/:path*',
+    '/cambiar-password',
+    '/login'
+  ],
 }

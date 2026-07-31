@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import Image from 'next/image'
 import { createClient } from '@/lib/supabase/client'
 
 export default function LoginPage() {
@@ -32,7 +33,6 @@ export default function LoginPage() {
 
     // 2. Consultar la tabla 'personas' para conocer el rol del usuario
     if (authData.user) {
-      // En lugar de usar .single() directo:
       const { data: personas, error: personaError } = await supabase
         .from('personas')
         .select('rol_sistema, nombre_completo')
@@ -46,7 +46,7 @@ export default function LoginPage() {
       }
 
       if (!personas || personas.length === 0) {
-        setError('El usuario autenticado no está vinculado a ninguna fila en la tabla personas (auth_user_id no coincide).')
+        setError('El usuario autenticado no está vinculado a ninguna fila en la tabla personas.')
         setLoading(false)
         return 
       }
@@ -57,7 +57,7 @@ export default function LoginPage() {
       if (['super_admin', 'pastor', 'encargado'].includes(persona.rol_sistema)) {
         router.push('/admin/dashboard')
       } else if (persona.rol_sistema === 'lider') {
-        router.push('/lider/welcome')
+        router.push('/')
       } else {
         setError('El usuario no tiene permisos de acceso al sistema.')
       }
@@ -65,45 +65,67 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
-      <div className="max-w-md w-full bg-white rounded-xl shadow-md p-8">
-        <h2 className="text-2xl font-bold text-center text-gray-800 mb-6">
-          Vida Abundante — Acceso
-        </h2>
+    // Fondo esmeralda plano corporativo
+    <div className="min-h-screen flex items-center justify-center bg-[#006C69] p-4">
+      <div className="max-w-md w-full bg-white rounded-2xl shadow-xl p-8">
+        
+        {/* Logo e Identidad */}
+        <div className="flex flex-col items-center mb-8">
+          <div className="relative w-48 h-20 mb-2">
+            <Image
+              src="/images/Logo-Negro.png" // O /images/Logo-Negro.png según la carpeta en public
+              alt="Centro Cristiano Casa del Rey Popayán"
+              fill
+              priority
+              className="object-contain"
+            />
+          </div>
+          <p className="text-xs font-semibold text-gray-500 uppercase tracking-widest mt-2">
+            Centro Cristiano Casa Del Rey Popayán
+          </p>
+        </div>
 
+        {/* Mensaje de Error */}
         {error && (
-          <div className="mb-4 p-3 bg-red-100 text-red-700 text-sm rounded-lg">
+          <div className="mb-6 p-3.5 bg-red-50 border-l-4 border-red-500 text-red-700 text-sm rounded-r-lg">
             {error}
           </div>
         )}
 
-        <form onSubmit={handleLogin} className="space-y-4">
+        {/* Formulario */}
+        <form onSubmit={handleLogin} className="space-y-5">
           <div>
-            <label className="block text-sm font-medium text-gray-700">Correo Electrónico</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Correo Electrónico
+            </label>
             <input
               type="email"
               required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="mt-1 w-full p-2 border rounded-md focus:ring-2 focus:ring-blue-500 outline-none"
+              placeholder="tu@correo.com"
+              className="w-full px-3.5 py-2.5 border border-gray-300 rounded-lg text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#006C69] focus:border-transparent transition-all"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700">Contraseña</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Contraseña
+            </label>
             <input
               type="password"
               required
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="mt-1 w-full p-2 border rounded-md focus:ring-2 focus:ring-blue-500 outline-none"
+              placeholder="••••••••"
+              className="w-full px-3.5 py-2.5 border border-gray-300 rounded-lg text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#006C69] focus:border-transparent transition-all"
             />
           </div>
 
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-blue-600 text-white py-2 rounded-md font-semibold hover:bg-blue-700 transition"
+            className="w-full bg-[#006C69] hover:bg-[#005452] active:bg-[#003D3B] text-white py-3 rounded-lg font-semibold shadow-md transition-all disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {loading ? 'Ingresando...' : 'Iniciar Sesión'}
           </button>

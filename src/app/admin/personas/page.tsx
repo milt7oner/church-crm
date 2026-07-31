@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { crearPersona } from '@/app/actions/personas-actions'
 import ResetPasswordModal from '@/components/ResetPasswordModal'
+import Link from 'next/link'
 
 export default function PersonasPage() {
   const [personas, setPersonas] = useState<any[]>([])
@@ -83,26 +84,38 @@ export default function PersonasPage() {
   }
 
   return (
-    <div className="p-8 max-w-6xl mx-auto">
-      <div className="flex justify-between items-center mb-6">
+    <div className="p-6 md:p-8 max-w-6xl mx-auto space-y-6">
+      
+      {/* Botón de regreso e Identificación */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
+          <Link
+            href="/admin/dashboard"
+            className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#006C69] hover:text-[#005250] mb-2 transition"
+          >
+            &larr; Volver al Panel
+          </Link>
           <h1 className="text-2xl font-bold text-gray-800">Gestión de Integrantes</h1>
-          <p className="text-sm text-gray-600">Líderes de consolidación y nuevos integrantes</p>
+          <p className="text-xs text-gray-500">
+            Administra a los líderes de consolidación y nuevos integrantes registrados
+          </p>
         </div>
+
         <button
           onClick={() => setIsModalOpen(true)}
-          className="bg-blue-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-blue-700 text-sm transition"
+          className="bg-[#006C69] text-white px-4 py-2.5 rounded-lg font-medium hover:bg-[#005250] text-sm shadow-sm transition-all duration-200 flex items-center justify-center gap-2"
         >
-          + Crear Persona
+          <span>+</span> Crear Persona
         </button>
       </div>
 
+      {/* Alertas */}
       {message && (
         <div
-          className={`p-3 rounded-lg text-sm mb-4 ${
+          className={`p-3.5 rounded-lg text-sm border-l-4 shadow-sm ${
             message.type === 'success'
-              ? 'bg-green-100 text-green-800'
-              : 'bg-red-100 text-red-700'
+              ? 'bg-emerald-50 border-emerald-500 text-emerald-800'
+              : 'bg-red-50 border-red-500 text-red-800'
           }`}
         >
           {message.text}
@@ -110,138 +123,169 @@ export default function PersonasPage() {
       )}
 
       {/* Tabla de Personas */}
-      <div className="bg-white border rounded-xl shadow-sm overflow-hidden">
-        <table className="w-full text-left border-collapse">
-          <thead>
-            <tr className="bg-gray-50 border-b text-xs font-semibold text-gray-600 uppercase">
-              <th className="p-4">Nombre</th>
-              <th className="p-4">Tipo</th>
-              <th className="p-4">Teléfono</th>
-              <th className="p-4">Líder Asignado</th>
-              <th className="p-4">Acciones</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y text-sm">
-            {loading ? (
-              <tr>
-                <td colSpan={5} className="p-4 text-center text-gray-500">Cargando...</td>
+      <div className="bg-white border border-gray-200 rounded-2xl shadow-sm overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="w-full text-left border-collapse">
+            <thead>
+              <tr className="bg-gray-50/75 border-b border-gray-200 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                <th className="p-4">Nombre</th>
+                <th className="p-4">Tipo</th>
+                <th className="p-4">Teléfono</th>
+                <th className="p-4">Líder Asignado</th>
+                <th className="p-4 text-right">Acciones</th>
               </tr>
-            ) : personas.length === 0 ? (
-              <tr>
-                <td colSpan={5} className="p-4 text-center text-gray-500">No hay integrantes registrados.</td>
-              </tr>
-            ) : (
-              personas.map((p) => (
-                <tr key={p.id} className="hover:bg-gray-50">
-                  <td className="p-4 font-medium text-gray-800">{p.nombre_completo}</td>
-                  <td className="p-4">
-                    <span
-                      className={`px-2 py-1 text-xs rounded-full font-medium ${
-                        p.tipo_persona === 'nuevo'
-                          ? 'bg-yellow-100 text-yellow-800'
-                          : 'bg-green-100 text-green-800'
-                      }`}
-                    >
-                      {p.tipo_persona}
-                    </span>
-                  </td>
-                  <td className="p-4 text-gray-600">{p.telefono || '—'}</td>
-                  <td className="p-4 text-gray-600">
-                    {p.lider_asignado?.nombre_completo || '—'}
-                  </td>
-                  <td className="p-4">
-                    {p.auth_user_id && (
-                      <button
-                        onClick={() =>
-                          setResetModalState({
-                            isOpen: true,
-                            authUserId: p.auth_user_id,
-                            nombre: p.nombre_completo,
-                          })
-                        }
-                        className="text-xs text-blue-600 hover:underline"
-                      >
-                        Reset Password
-                      </button>
-                    )}
+            </thead>
+            <tbody className="divide-y divide-gray-100 text-sm">
+              {loading ? (
+                <tr>
+                  <td colSpan={5} className="p-8 text-center text-gray-400">
+                    Cargando integrantes...
                   </td>
                 </tr>
-              ))
-            )}
-          </tbody>
-        </table>
+              ) : personas.length === 0 ? (
+                <tr>
+                  <td colSpan={5} className="p-8 text-center text-gray-400">
+                    No hay integrantes registrados en el sistema.
+                  </td>
+                </tr>
+              ) : (
+                personas.map((p) => (
+                  <tr key={p.id} className="hover:bg-gray-50/60 transition-colors">
+                    <td className="p-4 font-medium text-gray-800">{p.nombre_completo}</td>
+                    <td className="p-4">
+                      <span
+                        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold ${
+                          p.tipo_persona === 'nuevo'
+                            ? 'bg-[#0097A3]/10 text-[#0097A3]'
+                            : 'bg-[#006C69]/10 text-[#006C69]'
+                        }`}
+                      >
+                        {p.tipo_persona === 'nuevo' ? 'Nuevo' : 'Líder'}
+                      </span>
+                    </td>
+                    <td className="p-4 text-gray-600">{p.telefono || '—'}</td>
+                    <td className="p-4 text-gray-600">
+                      {p.lider_asignado?.nombre_completo || '—'}
+                    </td>
+                    <td className="p-4 text-right">
+                      {p.auth_user_id && (
+                        <button
+                          onClick={() =>
+                            setResetModalState({
+                              isOpen: true,
+                              authUserId: p.auth_user_id,
+                              nombre: p.nombre_completo,
+                            })
+                          }
+                          className="text-xs text-[#006C69] hover:text-[#005250] font-semibold hover:underline"
+                        >
+                          Restablecer Clave
+                        </button>
+                      )}
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
 
       {/* Modal de Creación */}
       {isModalOpen && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-xl max-w-md w-full p-6 shadow-xl">
-            <h3 className="text-lg font-bold mb-4">Registrar Integrante</h3>
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-gray-100">
+            <h3 className="text-lg font-bold text-gray-800 mb-4">Registrar Integrante</h3>
 
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
-                <label className="block text-xs font-semibold text-gray-600 mb-1">Tipo de Registro</label>
-                <div className="flex gap-4">
-                  <label className="flex items-center text-sm gap-1 cursor-pointer">
+                <label className="block text-xs font-semibold text-gray-600 mb-2">
+                  Tipo de Registro
+                </label>
+                <div className="grid grid-cols-2 gap-3">
+                  <label
+                    className={`flex items-center justify-center gap-2 p-2.5 rounded-xl border text-xs font-semibold cursor-pointer transition ${
+                      tipoPersona === 'nuevo'
+                        ? 'border-[#006C69] bg-[#006C69]/5 text-[#006C69]'
+                        : 'border-gray-200 text-gray-600 hover:bg-gray-50'
+                    }`}
+                  >
                     <input
                       type="radio"
                       name="tipo"
+                      className="hidden"
                       checked={tipoPersona === 'nuevo'}
                       onChange={() => setTipoPersona('nuevo')}
                     />
                     Nuevo Integrante
                   </label>
-                  <label className="flex items-center text-sm gap-1 cursor-pointer">
+
+                  <label
+                    className={`flex items-center justify-center gap-2 p-2.5 rounded-xl border text-xs font-semibold cursor-pointer transition ${
+                      tipoPersona === 'lider'
+                        ? 'border-[#006C69] bg-[#006C69]/5 text-[#006C69]'
+                        : 'border-gray-200 text-gray-600 hover:bg-gray-50'
+                    }`}
+                  >
                     <input
                       type="radio"
                       name="tipo"
+                      className="hidden"
                       checked={tipoPersona === 'lider'}
                       onChange={() => setTipoPersona('lider')}
                     />
-                    Líder (Con Login)
+                    Líder (Con Acceso)
                   </label>
                 </div>
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-gray-600">Nombre Completo</label>
+                <label className="block text-xs font-semibold text-gray-600 mb-1">
+                  Nombre Completo
+                </label>
                 <input
                   type="text"
                   required
                   value={nombreCompleto}
                   onChange={(e) => setNombreCompleto(e.target.value)}
-                  className="w-full p-2 border rounded-md text-sm outline-none focus:ring-1 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm text-gray-800 focus:ring-2 focus:ring-[#006C69] focus:border-transparent outline-none transition"
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-2">
+              <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-semibold text-gray-600">Teléfono</label>
+                  <label className="block text-xs font-semibold text-gray-600 mb-1">
+                    Teléfono
+                  </label>
                   <input
                     type="text"
                     value={telefono}
                     onChange={(e) => setTelefono(e.target.value)}
-                    className="w-full p-2 border rounded-md text-sm outline-none"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm text-gray-800 focus:ring-2 focus:ring-[#006C69] focus:border-transparent outline-none transition"
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-gray-600">Dirección</label>
+                  <label className="block text-xs font-semibold text-gray-600 mb-1">
+                    Dirección
+                  </label>
                   <input
                     type="text"
                     value={direccion}
                     onChange={(e) => setDireccion(e.target.value)}
-                    className="w-full p-2 border rounded-md text-sm outline-none"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm text-gray-800 focus:ring-2 focus:ring-[#006C69] focus:border-transparent outline-none transition"
                   />
                 </div>
               </div>
 
               {tipoPersona === 'nuevo' && (
                 <div>
-                  <label className="block text-xs font-semibold text-gray-600">Asignar Líder</label>
+                  <label className="block text-xs font-semibold text-gray-600 mb-1">
+                    Asignar Líder
+                  </label>
                   <select
                     value={liderAsignadoId}
                     onChange={(e) => setLiderAsignadoId(e.target.value)}
-                    className="w-full p-2 border rounded-md text-sm outline-none"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm text-gray-800 focus:ring-2 focus:ring-[#006C69] focus:border-transparent outline-none transition"
                   >
                     <option value="">Sin Líder Asignado</option>
                     {lideres.map((l) => (
@@ -256,41 +300,45 @@ export default function PersonasPage() {
               {tipoPersona === 'lider' && (
                 <>
                   <div>
-                    <label className="block text-xs font-semibold text-gray-600">Correo Electrónico</label>
+                    <label className="block text-xs font-semibold text-gray-600 mb-1">
+                      Correo Electrónico
+                    </label>
                     <input
                       type="email"
                       required
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
-                      className="w-full p-2 border rounded-md text-sm outline-none"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm text-gray-800 focus:ring-2 focus:ring-[#006C69] focus:border-transparent outline-none transition"
                     />
                   </div>
                   <div>
-                    <label className="block text-xs font-semibold text-gray-600">Contraseña Inicial</label>
+                    <label className="block text-xs font-semibold text-gray-600 mb-1">
+                      Contraseña Inicial
+                    </label>
                     <input
                       type="password"
                       required
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
-                      className="w-full p-2 border rounded-md text-sm outline-none"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm text-gray-800 focus:ring-2 focus:ring-[#006C69] focus:border-transparent outline-none transition"
                       placeholder="Mínimo 6 caracteres"
                     />
                   </div>
                 </>
               )}
 
-              <div className="flex justify-end gap-2 pt-4">
+              <div className="flex justify-end gap-3 pt-4">
                 <button
                   type="button"
                   onClick={() => setIsModalOpen(false)}
-                  className="px-4 py-2 border rounded-md text-sm text-gray-600 hover:bg-gray-50"
+                  className="px-4 py-2 border border-gray-200 rounded-lg text-sm text-gray-600 hover:bg-gray-50 transition"
                 >
                   Cancelar
                 </button>
                 <button
                   type="submit"
                   disabled={submitting}
-                  className="px-4 py-2 bg-blue-600 text-white rounded-md text-sm font-medium hover:bg-blue-700 disabled:opacity-50"
+                  className="px-4 py-2 bg-[#006C69] text-white rounded-lg text-sm font-medium hover:bg-[#005250] disabled:opacity-50 transition"
                 >
                   {submitting ? 'Guardando...' : 'Guardar'}
                 </button>
