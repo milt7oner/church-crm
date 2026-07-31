@@ -12,12 +12,12 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-// 1. Configuramos el Viewport explícitamente para dispositivos móviles
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   maximumScale: 1,
   userScalable: false,
+  colorScheme: "light",
 };
 
 export const metadata: Metadata = {
