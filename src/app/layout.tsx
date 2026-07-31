@@ -13,6 +13,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
+  viewport: 'width=device-width, initial-scale=1, maximum-scale=1',
   title: "Centro Cristiano Casa del Rey Popayán",
   description: "Sistema de gestión e información institucional",
   icons: {

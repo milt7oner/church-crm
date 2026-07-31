@@ -53,59 +53,63 @@ export default async function MisConsolidadosPage() {
 
   return (
     <div className="min-h-screen bg-gray-50/50">
-      {/* Header con Logo en la esquina superior derecha */}
-      <header className="bg-white border-b border-gray-200/80 px-6 py-4 sticky top-0 z-10 shadow-sm">
-        <div className="max-w-6xl mx-auto flex justify-between items-center">
-          <div>
-            <h1 className="font-bold text-gray-800 text-lg">Vida Abundante — Líder</h1>
-            <p className="text-xs text-gray-500">Líder: {lider.nombre_completo}</p>
+      {/* Header Responsivo */}
+      <header className="bg-white border-b border-gray-200/80 px-4 sm:px-6 py-3.5 sticky top-0 z-10 shadow-sm">
+        <div className="max-w-6xl mx-auto flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+          
+          {/* Fila superior movil / izquierda desktop */}
+          <div className="flex items-center justify-between w-full sm:w-auto">
+            <div className="flex items-center gap-2.5">
+              <Image
+                src="/images/Logo-Negro.png"
+                alt="Logo Vida Abundante"
+                width={32}
+                height={32}
+                className="object-contain shrink-0"
+                priority
+              />
+              <div>
+                <h1 className="font-bold text-gray-800 text-base leading-tight">
+                  Vida Abundante <span className="text-[#006C69] font-normal">— Líder</span>
+                </h1>
+                <p className="text-xs text-gray-500">Líder: {lider.nombre_completo}</p>
+              </div>
+            </div>
           </div>
 
-          <div className="flex items-center gap-4">
+          {/* Opciones de cuenta adaptadas */}
+          <div className="flex items-center justify-between sm:justify-end gap-3 w-full sm:w-auto pt-2 sm:pt-0 border-t border-gray-100 sm:border-t-0">
             <Link
               href="/cambiar-password"
-              className="text-xs font-medium text-[#006C69] hover:text-[#005250] hover:underline transition"
+              className="text-xs font-semibold text-[#006C69] hover:text-[#005250] hover:underline transition px-2 py-1 rounded-md bg-gray-50 sm:bg-transparent"
             >
               Cambiar Clave
             </Link>
             <LogoutButton />
-
-            <div className="h-6 w-px bg-gray-200 hidden sm:block" />
-
-            {/* Logo en la parte superior derecha */}
-            <div className="flex items-center">
-              <Image
-                src="/images/Logo-Negro.png"
-                alt="Logo Vida Abundante"
-                width={36}
-                height={36}
-                className="object-contain"
-                priority
-              />
-            </div>
           </div>
+
         </div>
       </header>
 
       {/* Contenido Principal */}
-      <main className="p-6 md:p-8 max-w-6xl mx-auto space-y-6">
+      <main className="p-4 sm:p-6 md:p-8 max-w-6xl mx-auto space-y-6">
         <div className="flex justify-between items-center">
           <div>
-            <h2 className="text-2xl font-bold text-gray-800">Mis Personas Asignadas</h2>
+            <h2 className="text-xl sm:text-2xl font-bold text-gray-800">Mis Personas Asignadas</h2>
             <p className="text-xs text-gray-500">Nuevos creyentes bajo tu acompañamiento</p>
           </div>
-          <span className="bg-[#006C69]/10 text-[#006C69] font-bold text-xs px-3 py-1.5 rounded-full border border-[#006C69]/20">
+          <span className="bg-[#006C69]/10 text-[#006C69] font-bold text-xs px-3 py-1.5 rounded-full border border-[#006C69]/20 shrink-0">
             Total: {misNuevos?.length || 0}
           </span>
         </div>
 
         {/* Tarjetas de Nuevos */}
         {!misNuevos || misNuevos.length === 0 ? (
-          <div className="bg-white p-12 rounded-2xl border border-gray-200 text-center text-gray-400 shadow-sm">
+          <div className="bg-white p-8 sm:p-12 rounded-2xl border border-gray-200 text-center text-gray-400 shadow-sm">
             <p className="text-sm">Aún no tienes personas nuevas asignadas para consolidación.</p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
             {misNuevos.map((nuevo) => {
               const etapasCompletadas = nuevo.etapasCompletadas || 0
               const porcentaje = Math.round((etapasCompletadas / 8) * 100)
@@ -113,24 +117,24 @@ export default async function MisConsolidadosPage() {
               return (
                 <div
                   key={nuevo.id}
-                  className="bg-white border border-gray-200 rounded-2xl p-5 shadow-sm hover:shadow-md transition-all duration-200 flex flex-col justify-between"
+                  className="bg-white border border-gray-200 rounded-2xl p-4 sm:p-5 shadow-sm hover:shadow-md transition-all duration-200 flex flex-col justify-between space-y-4"
                 >
                   <div>
-                    <div className="flex justify-between items-start gap-2 mb-3">
+                    <div className="flex justify-between items-start gap-2 mb-2">
                       <h3 className="font-bold text-gray-800 text-base leading-snug">
                         {nuevo.nombre_completo}
                       </h3>
-                      <span className="text-[10px] bg-emerald-50 text-emerald-700 font-semibold px-2 py-0.5 rounded-full border border-emerald-200 uppercase tracking-wide">
+                      <span className="text-[10px] bg-emerald-50 text-emerald-700 font-semibold px-2 py-0.5 rounded-full border border-emerald-200 uppercase tracking-wide shrink-0">
                         {nuevo.estado_consolidacion || 'activo'}
                       </span>
                     </div>
 
-                    <p className="text-xs text-gray-500 mb-5 flex items-center gap-1.5">
+                    <p className="text-xs text-gray-500 mb-4 flex items-center gap-1.5">
                       <span>📞</span> {nuevo.telefono || 'Sin teléfono'}
                     </p>
 
                     {/* Barra de Progreso */}
-                    <div className="mb-6 space-y-1.5">
+                    <div className="space-y-1.5">
                       <div className="flex justify-between text-xs font-semibold text-gray-600">
                         <span>Progreso Plan</span>
                         <span className="text-[#006C69]">
