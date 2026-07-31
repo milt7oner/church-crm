@@ -1,12 +1,15 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
+import Image from 'next/image'
 import LogoutButton from '@/components/LogoutButton'
 
 export default async function AdminDashboardPage() {
   const supabase = await createClient()
 
-  const { data: { user } } = await supabase.auth.getUser()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 
   const { data: admin } = await supabase
@@ -23,7 +26,7 @@ export default async function AdminDashboardPage() {
   const { count: totalLideres } = await supabase
     .from('personas')
     .select('*', { count: 'exact', head: true })
-    .eq('tipo_persona', 'lider')
+    .in('tipo_persona', ['lider', 'pastor'])
 
   const { count: totalNuevos } = await supabase
     .from('personas')
@@ -31,12 +34,18 @@ export default async function AdminDashboardPage() {
     .eq('tipo_persona', 'nuevo')
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50/50">
       {/* Header Corporativo */}
-      <header className="bg-white border-b border-gray-200 px-6 py-4 flex justify-between items-center shadow-sm">
+      <header className="bg-white border-b border-gray-200/80 px-6 py-4 flex justify-between items-center shadow-sm">
         <div className="flex items-center gap-3">
-          {/* Identificador de marca / Acento visual */}
-          <div className="w-2 h-10 bg-[#006C69] rounded-full hidden sm:block"></div>
+          <Image
+            src="/images/Logo-Negro.png"
+            alt="Logo Vida Abundante"
+            width={36}
+            height={36}
+            className="object-contain"
+            priority
+          />
           <div>
             <h1 className="font-bold text-gray-800 text-lg leading-tight">
               Centro Cristiano Casa del Rey <span className="text-[#006C69] font-normal">Popayán</span>
@@ -59,12 +68,12 @@ export default async function AdminDashboardPage() {
       </header>
 
       {/* Contenido Principal */}
-      <main className="p-6 max-w-6xl mx-auto space-y-8">
+      <main className="p-6 md:p-8 max-w-6xl mx-auto space-y-8">
         
         {/* Resumen de Cifras */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
           
-          <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition-all flex items-center justify-between">
+          <div className="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm hover:shadow-md transition-all flex items-center justify-between">
             <div>
               <p className="text-xs text-gray-400 font-semibold uppercase tracking-wider">
                 Líderes de Consolidación
@@ -78,7 +87,7 @@ export default async function AdminDashboardPage() {
             </div>
           </div>
 
-          <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition-all flex items-center justify-between">
+          <div className="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm hover:shadow-md transition-all flex items-center justify-between">
             <div>
               <p className="text-xs text-gray-400 font-semibold uppercase tracking-wider">
                 Nuevos en Consolidación
@@ -105,7 +114,7 @@ export default async function AdminDashboardPage() {
             {/* Módulo: Gestión de Integrantes */}
             <Link
               href="/admin/personas"
-              className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm hover:shadow-lg hover:-translate-y-0.5 transition-all flex flex-col justify-between group"
+              className="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm hover:shadow-lg hover:-translate-y-0.5 transition-all flex flex-col justify-between group"
             >
               <div>
                 <div className="w-12 h-12 rounded-xl bg-[#006C69]/10 text-[#006C69] flex items-center justify-center font-bold mb-4 group-hover:bg-[#006C69] group-hover:text-white transition-colors duration-200 text-xl">
@@ -123,24 +132,24 @@ export default async function AdminDashboardPage() {
               </span>
             </Link>
 
-            {/* Módulo: Vista de Consolidación */}
+            {/* Módulo: Supervisión de Líderes (Actualizado) */}
             <Link
-              href="/lider/mis-consolidados"
-              className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm hover:shadow-lg hover:-translate-y-0.5 transition-all flex flex-col justify-between group"
+              href="/admin/lideres"
+              className="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm hover:shadow-lg hover:-translate-y-0.5 transition-all flex flex-col justify-between group"
             >
               <div>
-                <div className="w-12 h-12 rounded-xl bg-[#00C19E]/15 text-[#0097A3] flex items-center justify-center font-bold mb-4 group-hover:bg-[#0097A3] group-hover:text-white transition-colors duration-200 text-xl">
+                <div className="w-12 h-12 rounded-xl bg-[#0097A3]/10 text-[#0097A3] flex items-center justify-center font-bold mb-4 group-hover:bg-[#0097A3] group-hover:text-white transition-colors duration-200 text-xl">
                   🎯
                 </div>
                 <h3 className="font-bold text-gray-800 text-base mb-2 group-hover:text-[#0097A3] transition-colors">
-                  Vista de Consolidación
+                  Supervisión de Líderes
                 </h3>
                 <p className="text-xs text-gray-500 leading-relaxed">
-                  Ver directamente las 8 etapas de las personas que tienes asignadas bajo tu cuidado.
+                  Supervisar el avance de cada líder, ver sus personas asignadas y consultar el progreso del plan de 8 etapas.
                 </p>
               </div>
               <span className="text-xs text-[#0097A3] font-semibold mt-6 flex items-center gap-1 group-hover:translate-x-1 transition-transform">
-                Ingresar a mis asignados &rarr;
+                Ver lista de líderes &rarr;
               </span>
             </Link>
 
