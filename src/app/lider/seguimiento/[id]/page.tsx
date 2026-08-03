@@ -26,7 +26,7 @@ export default async function SeguimientoPersonaPage({
 
   if (!persona) redirect('/lider/mis-consolidados')
 
-  // 2. Cargar el seguimiento de las 8 etapas con el nombre y regla del catálogo etapas_plan
+  // 2. Cargar el seguimiento enfocado en "Cartilla Conociendo a Jesús"
   const { data: seguimientos } = await supabase
     .from('seguimiento_etapas')
     .select(`
@@ -46,16 +46,40 @@ export default async function SeguimientoPersonaPage({
     `)
     .eq('persona_id', personaId)
 
-  // Ordenar por el orden de la etapa (1 a 8)
-  const seguimientosOrdenados =
-    seguimientos?.sort((a: any, b: any) => a.etapa.orden - b.etapa.orden) || []
+  // 🎯 Solución al error ts(2339): extraemos y normalizamos el objeto 'etapa'
+  const seguimientoCartilla = seguimientos?.find((s: any) => {
+    // Si Supabase devuelve 'etapa' como array, tomamos el primer elemento, si no, el objeto directo
+    const etapaObj = Array.isArray(s.etapa) ? s.etapa[0] : s.etapa
+    return (
+      etapaObj?.orden === 1 ||
+      etapaObj?.nombre?.toLowerCase().includes('conociendo')
+    )
+  }) || seguimientos?.[0]
 
-  // Cálculo de progreso general
-  const completadasCount = seguimientosOrdenados.filter((s: any) => s.completado).length
-  const porcentajeTotal = Math.round((completadasCount / 8) * 100)
+  // Extraemos la etapa del seguimiento seleccionado
+  const rawEtapa = seguimientoCartilla
+    ? Array.isArray(seguimientoCartilla.etapa)
+      ? seguimientoCartilla.etapa[0]
+      : seguimientoCartilla.etapa
+    : null
+
+  // Formateamos el objeto de la etapa asegurando los campos requeridos
+  const etapaCartilla = rawEtapa
+    ? {
+        orden: rawEtapa.orden ?? 1,
+        nombre: 'Cartilla: Conociendo a Jesús',
+        descripcion: 'Seguimiento del plan inicial de 5 lecciones de consolidación.',
+        tiene_subpasos: true,
+        total_subpasos: 5,
+      }
+    : null
+
+  // Cálculo del progreso (Basado en las 5 lecciones)
+  const subpasosActuales = seguimientoCartilla?.subpasos_completados || 0
+  const porcentajeTotal = Math.round((subpasosActuales / 5) * 100)
 
   return (
-    <div className="min-h-screen bg-gray-50/50 pb-16">
+    <div className="min-h-screen bg-gray-50 text-gray-900 pb-16">
       {/* Header / Nav */}
       <header className="bg-white border-b border-gray-200/80 px-6 py-4 sticky top-0 z-10 shadow-sm">
         <div className="max-w-4xl mx-auto flex justify-between items-center">
@@ -65,7 +89,7 @@ export default async function SeguimientoPersonaPage({
           >
             &larr; Volver a mis consolidados
           </Link>
-          
+
           <div className="flex items-center gap-2">
             <span className="text-xs font-medium text-gray-400 hidden sm:inline">
               Plan Vida Abundante
@@ -88,7 +112,9 @@ export default async function SeguimientoPersonaPage({
             <span className="text-[10px] uppercase font-bold tracking-wider text-[#006C69] bg-[#006C69]/10 px-2.5 py-1 rounded-full">
               Ficha de Consolidación
             </span>
-            <h1 className="text-2xl font-bold text-gray-800 pt-1">{persona.nombre_completo}</h1>
+            <h1 className="text-2xl font-bold text-gray-800 pt-1">
+              {persona.nombre_completo}
+            </h1>
             <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-gray-500 pt-1">
               <span className="flex items-center gap-1">
                 📞 {persona.telefono || 'Sin celular'}
@@ -100,11 +126,13 @@ export default async function SeguimientoPersonaPage({
             </div>
           </div>
 
-          {/* Widget de Progreso Compacto */}
-          <div className="bg-gray-50 border border-gray-100 p-4 rounded-xl flex flex-col justify-between min-w-[200px]">
+          {/* Widget de Progreso Compacto para 5 lecciones */}
+          <div className="bg-gray-50 border border-gray-100 p-4 rounded-xl flex flex-col justify-between min-w-[220px]">
             <div className="flex justify-between items-center text-xs font-bold text-gray-700 mb-2">
-              <span>Avance Global</span>
-              <span className="text-[#006C69]">{completadasCount} / 8</span>
+              <span>Avance de Cartilla</span>
+              <span className="text-[#006C69]">
+                {subpasosActuales} / 5 Lecciones
+              </span>
             </div>
             <div className="w-full bg-gray-200 h-2 rounded-full overflow-hidden mb-1">
               <div
@@ -119,24 +147,29 @@ export default async function SeguimientoPersonaPage({
         </div>
 
         <div className="flex justify-between items-center pt-2">
-          <h2 className="text-lg font-bold text-gray-800">Etapas del Plan (1 al 8)</h2>
-          <span className="text-xs text-gray-500">Haz clic para actualizar el progreso</span>
+          <h2 className="text-lg font-bold text-gray-800">
+            Seguimiento: Conociendo a Jesús
+          </h2>
+          <span className="text-xs text-gray-500">
+            Actualiza las lecciones realizadas
+          </span>
         </div>
 
-        {/* Lista interactiva de Etapas */}
-        <div className="space-y-4">
-          {seguimientosOrdenados.map((item: any) => (
-            <EtapaItemCard
-              key={item.id}
-              seguimientoId={item.id}
-              personaId={persona.id}
-              etapa={item.etapa}
-              completadoInicial={item.completado}
-              subpasosIniciales={item.subpasos_completados}
-              notasIniciales={item.notas || ''}
-            />
-          ))}
-        </div>
+        {/* Tarjeta de la Cartilla */}
+        {seguimientoCartilla && etapaCartilla ? (
+          <EtapaItemCard
+            seguimientoId={seguimientoCartilla.id}
+            personaId={persona.id}
+            etapa={etapaCartilla}
+            completadoInicial={seguimientoCartilla.completado}
+            subpasosIniciales={seguimientoCartilla.subpasos_completados}
+            notasIniciales={seguimientoCartilla.notas || ''}
+          />
+        ) : (
+          <div className="bg-white border rounded-xl p-6 text-center text-gray-500 text-sm">
+            No se encontró el registro de seguimiento para este consolidado.
+          </div>
+        )}
       </main>
     </div>
   )

@@ -126,3 +126,29 @@ export async function reasignarLider({
   revalidatePath('/admin/personas')
   return { success: true }
 }
+
+export async function cambiarEstadoConsolidacion(
+  personaId: string,
+  nuevoEstado: string
+) {
+  const supabase = await createServerClient()
+
+  const {
+    data: { user: currentUser },
+  } = await supabase.auth.getUser()
+  if (!currentUser) return { error: 'No autenticado' }
+
+  const { error } = await supabase
+    .from('personas')
+    .update({ estado_consolidacion: nuevoEstado })
+    .eq('id', personaId)
+
+  if (error) {
+    return { error: `Error al actualizar el estado: ${error.message}` }
+  }
+
+  revalidatePath('/lider/mis-consolidados')
+  revalidatePath('/admin/personas')
+
+  return { success: true }
+}

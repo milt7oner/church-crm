@@ -3,6 +3,7 @@ import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import Image from 'next/image'
 import LogoutButton from '@/components/LogoutButton'
+import CambiarEstadoBoton from '@/components/CambiarEstadoBoton'
 
 export default async function MisConsolidadosPage() {
   const supabase = await createClient()
@@ -29,26 +30,25 @@ export default async function MisConsolidadosPage() {
 
   const idsNuevos = personasAsignadas?.map((p) => p.id) || []
 
-  // 2. Obtener el seguimiento de esas personas en una sola consulta
+  // 2. Obtener los subpasos/lecciones completadas de cada persona
   let seguimientosMap: Record<string, number> = {}
 
   if (idsNuevos.length > 0) {
     const { data: seguimientos } = await supabase
       .from('seguimiento_etapas')
-      .select('persona_id, completado')
+      .select('persona_id, subpasos_completados')
       .in('persona_id', idsNuevos)
-      .eq('completado', true)
 
-    // Contar cuántas etapas completadas tiene cada persona
+    // Sumar lecciones por persona
     seguimientos?.forEach((s) => {
-      seguimientosMap[s.persona_id] = (seguimientosMap[s.persona_id] || 0) + 1
+      seguimientosMap[s.persona_id] = (seguimientosMap[s.persona_id] || 0) + (s.subpasos_completados || 0)
     })
   }
 
   // 3. Unir la información para renderizar
   const misNuevos = personasAsignadas?.map((nuevo) => ({
     ...nuevo,
-    etapasCompletadas: seguimientosMap[nuevo.id] || 0,
+    subpasosCompletados: seguimientosMap[nuevo.id] || 0,
   }))
 
   return (
@@ -57,7 +57,6 @@ export default async function MisConsolidadosPage() {
       <header className="bg-white border-b border-gray-200/80 px-4 sm:px-6 py-3.5 sticky top-0 z-10 shadow-sm">
         <div className="max-w-6xl mx-auto flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
           
-          {/* Fila superior movil / izquierda desktop */}
           <div className="flex items-center justify-between w-full sm:w-auto">
             <div className="flex items-center gap-2.5">
               <Image
@@ -77,7 +76,6 @@ export default async function MisConsolidadosPage() {
             </div>
           </div>
 
-          {/* Opciones de cuenta adaptadas */}
           <div className="flex items-center justify-between sm:justify-end gap-3 w-full sm:w-auto pt-2 sm:pt-0 border-t border-gray-100 sm:border-t-0">
             <Link
               href="/cambiar-password"
@@ -111,34 +109,40 @@ export default async function MisConsolidadosPage() {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
             {misNuevos.map((nuevo) => {
-              const etapasCompletadas = nuevo.etapasCompletadas || 0
-              const porcentaje = Math.round((etapasCompletadas / 8) * 100)
+              const subpasos = Math.min(5, nuevo.subpasosCompletados)
+              const porcentaje = Math.round((subpasos / 5) * 100)
+              const esAbandono = nuevo.estado_consolidacion === 'abandono'
 
               return (
                 <div
                   key={nuevo.id}
-                  className="bg-white border border-gray-200 rounded-2xl p-4 sm:p-5 shadow-sm hover:shadow-md transition-all duration-200 flex flex-col justify-between space-y-4"
+                  className={`bg-white border rounded-2xl p-4 sm:p-5 shadow-sm hover:shadow-md transition-all duration-200 flex flex-col justify-between space-y-4 ${
+                    esAbandono ? 'border-rose-200 bg-rose-50/20 opacity-80' : 'border-gray-200'
+                  }`}
                 >
                   <div>
                     <div className="flex justify-between items-start gap-2 mb-2">
                       <h3 className="font-bold text-gray-800 text-base leading-snug">
                         {nuevo.nombre_completo}
                       </h3>
-                      <span className="text-[10px] bg-emerald-50 text-emerald-700 font-semibold px-2 py-0.5 rounded-full border border-emerald-200 uppercase tracking-wide shrink-0">
-                        {nuevo.estado_consolidacion || 'activo'}
-                      </span>
+
+                      {/* 🎯 BOTÓN PARA CAMBIAR EL ESTADO */}
+                      <CambiarEstadoBoton
+                        personaId={nuevo.id}
+                        estadoActual={nuevo.estado_consolidacion}
+                      />
                     </div>
 
                     <p className="text-xs text-gray-500 mb-4 flex items-center gap-1.5">
                       <span>📞</span> {nuevo.telefono || 'Sin teléfono'}
                     </p>
 
-                    {/* Barra de Progreso */}
+                    {/* Barra de Progreso adaptada a 5 lecciones */}
                     <div className="space-y-1.5">
                       <div className="flex justify-between text-xs font-semibold text-gray-600">
-                        <span>Progreso Plan</span>
+                        <span>Cartilla Inicial</span>
                         <span className="text-[#006C69]">
-                          {etapasCompletadas} / 8 ({porcentaje}%)
+                          {subpasos} / 5 Lecciones ({porcentaje}%)
                         </span>
                       </div>
                       <div className="w-full bg-gray-100 h-2.5 rounded-full overflow-hidden p-0.5 border border-gray-100">
