@@ -4,6 +4,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import LogoutButton from '@/components/LogoutButton'
 import CambiarEstadoBoton from '@/components/CambiarEstadoBoton'
+import NuevoConsolidadoModal from '@/components/NuevoConsolidadoModal'
 
 export default async function MisConsolidadosPage() {
   const supabase = await createClient()
@@ -41,7 +42,8 @@ export default async function MisConsolidadosPage() {
 
     // Sumar lecciones por persona
     seguimientos?.forEach((s) => {
-      seguimientosMap[s.persona_id] = (seguimientosMap[s.persona_id] || 0) + (s.subpasos_completados || 0)
+      seguimientosMap[s.persona_id] =
+        (seguimientosMap[s.persona_id] || 0) + (s.subpasos_completados || 0)
     })
   }
 
@@ -56,7 +58,6 @@ export default async function MisConsolidadosPage() {
       {/* Header Responsivo */}
       <header className="bg-white border-b border-gray-200/80 px-4 sm:px-6 py-3.5 sticky top-0 z-10 shadow-sm">
         <div className="max-w-6xl mx-auto flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
-          
           <div className="flex items-center justify-between w-full sm:w-auto">
             <div className="flex items-center gap-2.5">
               <Image
@@ -85,26 +86,39 @@ export default async function MisConsolidadosPage() {
             </Link>
             <LogoutButton />
           </div>
-
         </div>
       </header>
 
       {/* Contenido Principal */}
       <main className="p-4 sm:p-6 md:p-8 max-w-6xl mx-auto space-y-6">
-        <div className="flex justify-between items-center">
+        {/* Cabecera con título, totalizador y Modal de Creación */}
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div>
-            <h2 className="text-xl sm:text-2xl font-bold text-gray-800">Mis Personas Asignadas</h2>
+            <h2 className="text-xl sm:text-2xl font-bold text-gray-800">
+              Mis Personas Asignadas
+            </h2>
             <p className="text-xs text-gray-500">Nuevos creyentes bajo tu acompañamiento</p>
           </div>
-          <span className="bg-[#006C69]/10 text-[#006C69] font-bold text-xs px-3 py-1.5 rounded-full border border-[#006C69]/20 shrink-0">
-            Total: {misNuevos?.length || 0}
-          </span>
+
+          <div className="flex items-center gap-3 w-full sm:w-auto justify-between sm:justify-end">
+            <span className="bg-[#006C69]/10 text-[#006C69] font-bold text-xs px-3 py-2 rounded-xl border border-[#006C69]/20 shrink-0">
+              Total: {misNuevos?.length || 0}
+            </span>
+
+            {/* 🎯 Componente Modal para que el líder registre nuevos consolidados */}
+            <NuevoConsolidadoModal />
+          </div>
         </div>
 
         {/* Tarjetas de Nuevos */}
         {!misNuevos || misNuevos.length === 0 ? (
-          <div className="bg-white p-8 sm:p-12 rounded-2xl border border-gray-200 text-center text-gray-400 shadow-sm">
-            <p className="text-sm">Aún no tienes personas nuevas asignadas para consolidación.</p>
+          <div className="bg-white p-8 sm:p-12 rounded-2xl border border-gray-200 text-center text-gray-400 shadow-sm space-y-3">
+            <p className="text-sm">
+              Aún no tienes personas nuevas asignadas para consolidación.
+            </p>
+            <p className="text-xs text-gray-400">
+              Usa el botón de arriba para registrar a alguien nuevo.
+            </p>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">

@@ -3,6 +3,7 @@ import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import Image from 'next/image'
 import LogoutButton from '@/components/LogoutButton'
+import GenerarCodigoModal from '@/components/GenerarCodigoModal'
 
 export default async function AdminDashboardPage() {
   const supabase = await createClient()
@@ -57,6 +58,9 @@ export default async function AdminDashboardPage() {
         </div>
 
         <div className="flex items-center justify-between sm:justify-end gap-3 w-full sm:w-auto pt-2 sm:pt-0 border-t border-gray-100 sm:border-t-0">
+          {/* Botón para abrir el Modal de Generación de Código */}
+          <GenerarCodigoModal />
+
           <Link 
             href="/cambiar-password" 
             className="text-xs font-semibold text-[#006C69] hover:text-[#005250] hover:underline transition px-2 py-1 rounded-md bg-gray-50 sm:bg-transparent"
