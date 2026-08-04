@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Image from 'next/image'
+import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 
 export default function LoginPage() {
@@ -67,27 +68,27 @@ export default function LoginPage() {
   return (
     // Fondo esmeralda plano corporativo
     <div className="min-h-screen flex items-center justify-center bg-[#006C69] p-4">
-      <div className="max-w-md w-full bg-white rounded-2xl shadow-xl p-8">
+      <div className="max-w-md w-full bg-white rounded-2xl shadow-xl p-8 space-y-6">
         
         {/* Logo e Identidad */}
-        <div className="flex flex-col items-center mb-8">
+        <div className="flex flex-col items-center">
           <div className="relative w-48 h-20 mb-2">
             <Image
-              src="/images/Logo-Negro.png" // O /images/Logo-Negro.png según la carpeta en public
+              src="/images/Logo-Negro.png"
               alt="Centro Cristiano Casa del Rey Popayán"
               fill
               priority
               className="object-contain"
             />
           </div>
-          <p className="text-xs font-semibold text-gray-500 uppercase tracking-widest mt-2">
+          <p className="text-xs font-semibold text-gray-500 uppercase tracking-widest mt-2 text-center">
             Centro Cristiano Casa Del Rey Popayán
           </p>
         </div>
 
         {/* Mensaje de Error */}
         {error && (
-          <div className="mb-6 p-3.5 bg-red-50 border-l-4 border-red-500 text-red-700 text-sm rounded-r-lg">
+          <div className="p-3.5 bg-red-50 border-l-4 border-red-500 text-red-700 text-sm rounded-r-lg">
             {error}
           </div>
         )}
@@ -130,6 +131,20 @@ export default function LoginPage() {
             {loading ? 'Ingresando...' : 'Iniciar Sesión'}
           </button>
         </form>
+
+        {/* 🎯 Enlace al formulario de autoregistro de líderes */}
+        <div className="text-center pt-2 border-t border-gray-100">
+          <p className="text-xs text-gray-500">
+            ¿Eres líder y tienes un código de acceso?{' '}
+            <Link 
+              href="/registro-lider" 
+              className="text-[#006C69] font-bold hover:underline"
+            >
+              Regístrate aquí
+            </Link>
+          </p>
+        </div>
+
       </div>
     </div>
   )
