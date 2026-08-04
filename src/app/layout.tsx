@@ -18,11 +18,18 @@ export const viewport: Viewport = {
   maximumScale: 1,
   userScalable: false,
   colorScheme: "light",
+  themeColor: "#006C69", // 🎯 Define el color esmeralda corporativo en la barra superior del celular
 };
 
 export const metadata: Metadata = {
   title: "Centro Cristiano Casa del Rey Popayán",
   description: "Sistema de gestión e información institucional",
+  manifest: "/manifest.webmanifest", // 🎯 Conecta el archivo de configuración PWA
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "black-translucent",
+    title: "Casa del Rey",
+  },
   icons: {
     icon: "/Logo-Verde-sin-texto.png",
     apple: "/Logo-Verde-sin-texto.png",
