@@ -32,7 +32,7 @@ export default async function MisConsolidadosPage() {
   const idsNuevos = personasAsignadas?.map((p) => p.id) || []
 
   // 2. Obtener los subpasos/lecciones completadas de cada persona
-  let seguimientosMap: Record<string, number> = {}
+  const seguimientosMap: Record<string, number> = {}
 
   if (idsNuevos.length > 0) {
     const { data: seguimientos } = await supabase

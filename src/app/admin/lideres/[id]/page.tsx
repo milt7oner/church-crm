@@ -35,7 +35,7 @@ export default async function DetalleLiderPage({
   const idsConsolidados = consolidados?.map((c) => c.id) || []
 
   // 3. Obtener el progreso de etapas
-  let seguimientosMap: Record<string, number> = {}
+  const seguimientosMap: Record<string, number> = {}
 
   if (idsConsolidados.length > 0) {
     const { data: seguimientos } = await supabase

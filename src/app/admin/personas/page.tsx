@@ -1,14 +1,26 @@
 'use client'
 
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect, useMemo, useCallback } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { crearPersona, reasignarLider } from '@/app/actions/personas-actions'
 import ResetPasswordModal from '@/components/ResetPasswordModal'
 import Link from 'next/link'
 
+type Persona = {
+  id: string
+  auth_user_id: string | null
+  nombre_completo: string
+  telefono: string | null
+  tipo_persona: string
+  lider_asignado_id: string | null
+  nombre_lider_asignado: string | null
+}
+
+type FiltroEstadoLider = 'todos' | 'sin_lider' | 'con_lider'
+
 export default function PersonasPage() {
-  const [personas, setPersonas] = useState<any[]>([])
-  const [lideres, setLideres] = useState<any[]>([])
+  const [personas, setPersonas] = useState<Persona[]>([])
+  const [lideres, setLideres] = useState<Persona[]>([])
   const [loading, setLoading] = useState(true)
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [submitting, setSubmitting] = useState(false)
@@ -36,13 +48,11 @@ export default function PersonasPage() {
   const [liderDestinoId, setLiderDestinoId] = useState('')
   const [personasSeleccionadas, setPersonasSeleccionadas] = useState<string[]>([])
   const [busquedaNuevos, setBusquedaNuevos] = useState('')
-  const [filtroEstadoLider, setFiltroEstadoLider] = useState<'todos' | 'sin_lider' | 'con_lider'>('todos')
+  const [filtroEstadoLider, setFiltroEstadoLider] = useState<FiltroEstadoLider>('todos')
 
-  const supabase = createClient()
+  const supabase = useMemo(() => createClient(), [])
 
-  const cargarDatos = async () => {
-    setLoading(true)
-
+  const fetchDatos = useCallback(async (): Promise<Persona[] | null> => {
     // Consulta limpia a la tabla personas
     const { data: listPersonas, error } = await supabase
       .from('personas')
@@ -51,33 +61,47 @@ export default function PersonasPage() {
 
     if (error) {
       console.error('Error al cargar personas:', error)
-      setLoading(false)
-      return
+      return null
     }
 
-    if (listPersonas) {
-      // 1. Mapeamos un diccionario de id_persona -> nombre_completo
-      const mapaNombres = new Map<string, string>()
-      listPersonas.forEach((p) => {
-        mapaNombres.set(p.id, p.nombre_completo)
-      })
+    if (!listPersonas) return null
 
-      // 2. Formateamos las personas agregando el nombre del líder asignado de manera directa y garantizada
-      const personasConLider = listPersonas.map((p) => ({
-        ...p,
-        nombre_lider_asignado: p.lider_asignado_id ? mapaNombres.get(p.lider_asignado_id) || null : null,
-      }))
+    // 1. Mapeamos un diccionario de id_persona -> nombre_completo
+    const mapaNombres = new Map<string, string>()
+    listPersonas.forEach((p) => {
+      mapaNombres.set(p.id, p.nombre_completo)
+    })
 
+    // 2. Formateamos las personas agregando el nombre del líder asignado de manera directa y garantizada
+    return listPersonas.map((p) => ({
+      ...p,
+      nombre_lider_asignado: p.lider_asignado_id ? mapaNombres.get(p.lider_asignado_id) || null : null,
+    }))
+  }, [supabase])
+
+  const aplicarDatos = (personasConLider: Persona[] | null) => {
+    if (personasConLider) {
       setPersonas(personasConLider)
       setLideres(personasConLider.filter((p) => p.tipo_persona === 'lider' || p.tipo_persona === 'pastor'))
     }
-
     setLoading(false)
   }
 
+  const cargarDatos = async () => {
+    setLoading(true)
+    aplicarDatos(await fetchDatos())
+  }
+
   useEffect(() => {
-    cargarDatos()
-  }, [])
+    // Initial load: loading already starts as true; state is applied in the async callback
+    let ignore = false
+    fetchDatos().then((personasConLider) => {
+      if (!ignore) aplicarDatos(personasConLider)
+    })
+    return () => {
+      ignore = true
+    }
+  }, [fetchDatos])
 
   const resetFormularios = () => {
     setNombreCompleto('')
@@ -289,7 +313,7 @@ export default function PersonasPage() {
                             onClick={() =>
                               setResetModalState({
                                 isOpen: true,
-                                authUserId: p.auth_user_id,
+                                authUserId: p.auth_user_id ?? '',
                                 nombre: p.nombre_completo,
                               })
                             }
@@ -507,7 +531,7 @@ export default function PersonasPage() {
                       />
                       <select
                         value={filtroEstadoLider}
-                        onChange={(e) => setFiltroEstadoLider(e.target.value as any)}
+                        onChange={(e) => setFiltroEstadoLider(e.target.value as FiltroEstadoLider)}
                         className="px-2 py-1.5 border border-gray-200 rounded-lg text-gray-600 bg-white"
                       >
                         <option value="todos">Todos</option>

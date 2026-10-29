@@ -1,7 +1,6 @@
 'use server'
 
 import { createClient as createAdminClient } from '@supabase/supabase-js'
-import { createClient as createServerClient } from '@/lib/supabase/server'
 
 export async function registrarLiderAutonomo(formData: {
   nombreCompleto: string
@@ -12,7 +11,6 @@ export async function registrarLiderAutonomo(formData: {
   password: string
   codigoRegistro: string
 }) {
-  const supabase = await createServerClient()
 
   // 1. Inicializar cliente Admin de Supabase (omite RLS)
   const supabaseAdmin = createAdminClient(

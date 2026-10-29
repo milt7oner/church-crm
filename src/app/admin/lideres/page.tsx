@@ -26,7 +26,7 @@ export default async function AdminLideresPage() {
   const idsLideres = lideres?.map((l) => l.id) || []
 
   // 2. Obtener los consolidados asignados a estos líderes
-  let conteoMap: Record<string, number> = {}
+  const conteoMap: Record<string, number> = {}
 
   if (idsLideres.length > 0) {
     const { data: consolidados } = await supabase

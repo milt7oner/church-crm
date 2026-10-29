@@ -47,7 +47,7 @@ export default async function SeguimientoPersonaPage({
     .eq('persona_id', personaId)
 
   // 🎯 Solución al error ts(2339): extraemos y normalizamos el objeto 'etapa'
-  const seguimientoCartilla = seguimientos?.find((s: any) => {
+  const seguimientoCartilla = seguimientos?.find((s) => {
     // Si Supabase devuelve 'etapa' como array, tomamos el primer elemento, si no, el objeto directo
     const etapaObj = Array.isArray(s.etapa) ? s.etapa[0] : s.etapa
     return (

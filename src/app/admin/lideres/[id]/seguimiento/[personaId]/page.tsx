@@ -273,7 +273,7 @@ export default async function AdminReporteConsolidadoPage({
                       </span>
                       {notas && notas.trim() !== '' ? (
                         <p className="text-xs text-gray-700 bg-amber-50/50 border border-amber-100 p-3 rounded-xl italic leading-relaxed">
-                          "{notas}"
+                          &ldquo;{notas}&rdquo;
                         </p>
                       ) : (
                         <p className="text-xs text-gray-400 italic">Sin anotaciones registradas por el líder.</p>
