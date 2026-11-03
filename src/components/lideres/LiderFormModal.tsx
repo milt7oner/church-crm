@@ -5,9 +5,8 @@ import { actualizarLider, crearLider } from '@/app/actions/lideres-actions'
 import Modal from '@/components/ui/Modal'
 import { useActionForm } from '@/components/ui/useActionForm'
 import { ROL_LABEL, rolRequiereRed, type Rol } from '@/lib/roles'
+import type { OpcionRed } from '@/lib/types'
 import { alertError, btnPrimary, btnSecondary, input, label } from '@/lib/ui'
-
-export type OpcionRed = { id: string; nombre: string }
 
 export type LiderEditable = {
   id: string

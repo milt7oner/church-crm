@@ -1,8 +1,10 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
+import { NuevoGrupoBoton } from '@/components/grupos/GrupoBotones'
 import EmptyState from '@/components/ui/EmptyState'
 import PageHeader from '@/components/ui/PageHeader'
 import { requirePerfil } from '@/lib/auth/perfil'
+import { cargarOpcionesGrupo } from '@/lib/opciones'
 import { puedeReportarRed } from '@/lib/permisos'
 import { esAdmin } from '@/lib/roles'
 import { etiquetaSemana, semanaActual } from '@/lib/semana'
@@ -19,7 +21,7 @@ export default async function RedDetallePage({ params }: { params: Promise<{ id:
   if (!red) notFound()
 
   const semana = semanaActual()
-  const [{ data: lideres }, { data: grupos }, { data: reportesRed }] = await Promise.all([
+  const [{ data: lideres }, { data: grupos }, { data: reportesRed }, opciones] = await Promise.all([
     supabase.from('perfiles').select('id, nombre_completo, rol').eq('red_id', id).eq('activo', true),
     supabase.from('grupos').select('id, nombre, lider_grupo_id').eq('red_id', id).eq('activo', true).order('nombre'),
     supabase
@@ -28,6 +30,7 @@ export default async function RedDetallePage({ params }: { params: Promise<{ id:
       .eq('red_id', id)
       .order('semana', { ascending: false })
       .limit(8),
+    cargarOpcionesGrupo(perfil),
   ])
 
   const idsGrupos = (grupos ?? []).map((g) => g.id)
@@ -60,11 +63,14 @@ export default async function RedDetallePage({ params }: { params: Promise<{ id:
       </PageHeader>
 
       <section className="space-y-3">
-        <h3 className="text-sm font-bold text-gray-700">
-          Grupos ({reportados.size}/{idsGrupos.length} reportados · {etiquetaSemana(semana)})
-        </h3>
+        <div className="flex items-center justify-between gap-2">
+          <h3 className="text-sm font-bold text-gray-700">
+            Grupos ({reportados.size}/{idsGrupos.length} reportados · {etiquetaSemana(semana)})
+          </h3>
+          <NuevoGrupoBoton {...opciones} redFija={red.id} />
+        </div>
         {!grupos?.length ? (
-          <EmptyState titulo="Esta red aún no tiene grupos." detalle="Créalos desde la sección Grupos." />
+          <EmptyState titulo="Esta red aún no tiene grupos." detalle="Usa el botón “Nuevo grupo” para crear uno." />
         ) : (
           <div className={`${card} divide-y divide-gray-100`}>
             {grupos.map((g) => (

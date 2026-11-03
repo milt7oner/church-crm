@@ -64,3 +64,6 @@ export type ReporteRed = {
 
 /** Standard result returned by every server action. */
 export type ActionResult = { error: string } | { success: true }
+
+export type OpcionRed = { id: string; nombre: string }
+export type OpcionLider = { id: string; nombre_completo: string; red_id: string | null }

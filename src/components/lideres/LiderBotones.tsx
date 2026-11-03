@@ -5,8 +5,9 @@ import { desactivarLider } from '@/app/actions/lideres-actions'
 import ResetPasswordModal from '@/components/ResetPasswordModal'
 import ConfirmButton from '@/components/ui/ConfirmButton'
 import type { Rol } from '@/lib/roles'
+import type { OpcionRed } from '@/lib/types'
 import { btnLink, btnPrimary } from '@/lib/ui'
-import LiderFormModal, { type LiderEditable, type OpcionRed } from './LiderFormModal'
+import LiderFormModal, { type LiderEditable } from './LiderFormModal'
 
 type Comunes = { rolesDisponibles: Rol[]; redes: OpcionRed[]; redFija: string | null }
 
