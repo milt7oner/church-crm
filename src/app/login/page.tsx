@@ -3,7 +3,6 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Image from 'next/image'
-import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 
 export default function LoginPage() {
@@ -32,37 +31,30 @@ export default function LoginPage() {
       return
     }
 
-    // 2. Consultar la tabla 'personas' para conocer el rol del usuario
-    if (authData.user) {
-      const { data: personas, error: personaError } = await supabase
-        .from('personas')
-        .select('rol_sistema, nombre_completo')
-        .eq('auth_user_id', authData.user.id)
+    // 2. Verify the user has an active profile in Casas de Vida
+    const { data: perfil, error: perfilError } = await supabase
+      .from('perfiles')
+      .select('id')
+      .eq('auth_user_id', authData.user.id)
+      .eq('activo', true)
+      .maybeSingle()
 
-      if (personaError) {
-        console.error('Error al consultar personas:', personaError)
-        setError('Error al consultar la base de datos.')
-        setLoading(false)
-        return
-      }
-
-      if (!personas || personas.length === 0) {
-        setError('El usuario autenticado no está vinculado a ninguna fila en la tabla personas.')
-        setLoading(false)
-        return 
-      }
-
-      const persona = personas[0]
-
-      // 3. Redireccionar según el rol
-      if (['super_admin', 'pastor', 'encargado'].includes(persona.rol_sistema)) {
-        router.push('/admin/dashboard')
-      } else if (persona.rol_sistema === 'lider') {
-        router.push('/')
-      } else {
-        setError('El usuario no tiene permisos de acceso al sistema.')
-      }
+    if (perfilError) {
+      console.error('Error al consultar perfiles:', perfilError)
+      setError('Error al consultar la base de datos.')
+      setLoading(false)
+      return
     }
+
+    if (!perfil) {
+      await supabase.auth.signOut()
+      setError('Tu usuario no tiene acceso al sistema. Comunícate con tu líder o con el pastor.')
+      setLoading(false)
+      return
+    }
+
+    router.push('/inicio')
+    router.refresh()
   }
 
   return (
@@ -131,19 +123,6 @@ export default function LoginPage() {
             {loading ? 'Ingresando...' : 'Iniciar Sesión'}
           </button>
         </form>
-
-        {/* 🎯 Enlace al formulario de autoregistro de líderes */}
-        <div className="text-center pt-2 border-t border-gray-100">
-          <p className="text-xs text-gray-500">
-            ¿Eres líder y tienes un código de acceso?{' '}
-            <Link 
-              href="/registro-lider" 
-              className="text-[#006C69] font-bold hover:underline"
-            >
-              Regístrate aquí
-            </Link>
-          </p>
-        </div>
 
       </div>
     </div>
