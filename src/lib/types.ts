@@ -1,3 +1,4 @@
+import type { TipoRed } from './redes'
 import type { Rol } from './roles'
 
 // Row shapes of the Casas de Vida tables (see supabase/migrations).
@@ -18,6 +19,8 @@ export type Red = {
   id: string
   iglesia_id: string
   nombre: string
+  tipo: TipoRed
+  descripcion: string | null
   activo: boolean
 }
 

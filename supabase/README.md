@@ -37,3 +37,15 @@ drop function if exists public.app_perfil_id(), public.app_rol(), public.app_red
 drop type if exists public.rol_app;
 commit;
 ```
+
+## `20261103000000_redes_tipo_descripcion.sql`
+
+Adds `redes.tipo` (`adultos` | `jovenes` | `ninos`, default `adultos`) and `redes.descripcion`
+(neighborhoods or zones the network covers). Apply it the same way. To roll it back:
+
+```sql
+begin;
+alter table public.redes drop column if exists tipo, drop column if exists descripcion;
+drop type if exists public.tipo_red;
+commit;
+```
