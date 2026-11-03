@@ -19,7 +19,7 @@ export async function createClient() {
             )
           } catch {
             // El método setAll se llama desde Server Components.
-            // Esto se puede ignorar si hay un middleware actualizando las sesiones.
+            // Esto se puede ignorar si hay un proxy actualizando las sesiones.
           }
         },
       },

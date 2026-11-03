@@ -1,36 +1,46 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Casas de Vida — Centro Cristiano Casa del Rey Popayán
 
-## Getting Started
+Web app (PWA) to follow up on home groups ("Casas de Vida"): networks, groups, members and weekly reports.
 
-First, run the development server:
+## Roles
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+| Role | Sees | Manages | Weekly report |
+|---|---|---|---|
+| Pastor | Everything in the church | Admin leaders, networks, network/group leaders, groups, members | — |
+| Líder admin | Everything in the church | Networks, network/group leaders, groups, members | — |
+| Líder de red | Their network | Group leaders and groups of their network | Groups followed up + notes |
+| Líder de grupo | Their groups | Members and meeting details of their groups | Attendance, topic, notes |
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Group members are records only; they do not log in. Leader accounts are created by whoever adds them.
+Deleting is a soft delete (`activo = false`) so attendance history is kept.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Stack
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Next.js 16 (App Router) · React 19 · TypeScript · Tailwind CSS 4 · Supabase (Auth + Postgres with RLS) · pnpm.
 
-## Learn More
+## Setup
 
-To learn more about Next.js, take a look at the following resources:
+1. `pnpm install`
+2. Create `.env.local`:
+   ```
+   NEXT_PUBLIC_SUPABASE_URL=...
+   NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=...
+   SUPABASE_SERVICE_ROLE_KEY=...
+   ```
+3. Apply the SQL migrations in `supabase/migrations` (see `supabase/README.md`).
+4. `pnpm dev` and open http://localhost:3000
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Scripts
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+- `pnpm dev` / `pnpm build` / `pnpm start`
+- `pnpm lint`
+- `pnpm test` — unit tests plus RLS tests that run the migration on an in-memory Postgres (PGlite)
 
-## Deploy on Vercel
+## Code map
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- `src/app/(app)/` — authenticated screens: `inicio`, `redes`, `grupos`, `lideres`, report forms
+- `src/app/actions/` — server actions (each checks permissions before writing)
+- `src/lib/permisos.ts` — permission rules, mirrored by the RLS policies in the migration
+- `src/lib/semana.ts` — report weeks (Monday-based, America/Bogota)
+- `src/proxy.ts` — session check for every app route
+- `supabase/` — migrations, how to apply them, and RLS tests
