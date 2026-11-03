@@ -6,10 +6,11 @@ import PageHeader from '@/components/ui/PageHeader'
 import { requirePerfil } from '@/lib/auth/perfil'
 import { cargarOpcionesGrupo } from '@/lib/opciones'
 import { puedeReportarRed } from '@/lib/permisos'
+import { TIPO_RED_LABEL, type TipoRed } from '@/lib/redes'
 import { esAdmin } from '@/lib/roles'
 import { etiquetaSemana, semanaActual } from '@/lib/semana'
 import { createClient } from '@/lib/supabase/server'
-import { badgeOk, badgePendiente, btnLink, btnPrimary, card } from '@/lib/ui'
+import { badgeNeutral, badgeOk, badgePendiente, btnLink, btnPrimary, card } from '@/lib/ui'
 
 export default async function RedDetallePage({ params }: { params: Promise<{ id: string }> }) {
   const perfil = await requirePerfil(['pastor', 'lider_admin', 'lider_red'])
@@ -17,7 +18,7 @@ export default async function RedDetallePage({ params }: { params: Promise<{ id:
   if (perfil.rol === 'lider_red' && perfil.red_id !== id) notFound()
 
   const supabase = await createClient()
-  const { data: red } = await supabase.from('redes').select('id, nombre, activo').eq('id', id).maybeSingle()
+  const { data: red } = await supabase.from('redes').select('id, nombre, tipo, descripcion, activo').eq('id', id).maybeSingle()
   if (!red) notFound()
 
   const semana = semanaActual()
@@ -52,7 +53,15 @@ export default async function RedDetallePage({ params }: { params: Promise<{ id:
     <>
       <PageHeader
         titulo={red.nombre}
-        subtitulo={`Líder de red: ${liderRed?.nombre_completo ?? 'sin asignar'}`}
+        subtitulo={
+          <span className="block space-y-1">
+            <span className="flex flex-wrap items-center gap-2">
+              <span className={badgeNeutral}>Red de {TIPO_RED_LABEL[red.tipo as TipoRed].toLowerCase()}</span>
+              <span>Líder de red: {liderRed?.nombre_completo ?? 'sin asignar'}</span>
+            </span>
+            {red.descripcion && <span className="block whitespace-pre-line">Zonas: {red.descripcion}</span>}
+          </span>
+        }
         volver={esAdmin(perfil.rol) ? { href: '/redes', label: 'Redes' } : undefined}
       >
         {puedeReportarRed(perfil, red.id) && (

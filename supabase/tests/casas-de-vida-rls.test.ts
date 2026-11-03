@@ -1,12 +1,12 @@
-// Runs the Casas de Vida migration on an in-memory Postgres (PGlite) with a
+// Runs the migrations on an in-memory Postgres (PGlite) with a
 // minimal stand-in for Supabase's auth schema, then checks the RLS policies
 // from the point of view of each role.
-import { readFileSync } from 'node:fs'
+import { readdirSync, readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { PGlite } from '@electric-sql/pglite'
 import { beforeAll, describe, expect, it } from 'vitest'
 
-const MIGRATION = fileURLToPath(new URL('../migrations/20261102000000_casas_de_vida.sql', import.meta.url))
+const MIGRATIONS_DIR = fileURLToPath(new URL('../migrations/', import.meta.url))
 
 const id = (n: number) => `00000000-0000-0000-0000-${String(n).padStart(12, '0')}`
 
@@ -90,7 +90,9 @@ beforeAll(async () => {
       ('Old leader', '${IGLESIA_1}', '${USER.sinPerfil}', 'lider');
   `)
 
-  await db.exec(readFileSync(MIGRATION, 'utf8'))
+  for (const file of readdirSync(MIGRATIONS_DIR).filter((f) => f.endsWith('.sql')).sort()) {
+    await db.exec(readFileSync(MIGRATIONS_DIR + file, 'utf8'))
+  }
 
   // Supabase grants table privileges to "authenticated" by default; RLS does the filtering.
   await db.exec(`
@@ -231,6 +233,15 @@ describe('RLS', () => {
         expect(await fails(`insert into redes (iglesia_id, nombre) values ('${IGLESIA_1}', 'Red 3')`)).toBe(false)
         expect(await fails(`insert into redes (iglesia_id, nombre) values ('${IGLESIA_2}', 'x')`)).toBe(true)
         expect(await fails(`update grupos set red_id = '${RED_2}' where nombre = 'g1b'`)).toBe(false)
+      }))
+
+    it('sets the network type and description; only known types are accepted', () =>
+      as(USER.admin, async () => {
+        expect(
+          await fails(`insert into redes (iglesia_id, nombre, tipo, descripcion) values ('${IGLESIA_1}', 'Red J', 'jovenes', 'Centro')`)
+        ).toBe(false)
+        expect(await fails(`insert into redes (iglesia_id, nombre, tipo) values ('${IGLESIA_1}', 'Red X', 'otros')`)).toBe(true)
+        expect(await rows(`select tipo from redes where nombre = 'Red 3'`)).toEqual([{ tipo: 'adultos' }])
       }))
 
     it('does not file network reports', () =>
