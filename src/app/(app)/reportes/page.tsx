@@ -1,5 +1,6 @@
 import { FiltroBotones, type ParamsReporte } from '@/components/reportes-vistas/Filtros'
 import VistaGrupo from '@/components/reportes-vistas/VistaGrupo'
+import VistaRed from '@/components/reportes-vistas/VistaRed'
 import EmptyState from '@/components/ui/EmptyState'
 import PageHeader from '@/components/ui/PageHeader'
 import { requirePerfil } from '@/lib/auth/perfil'
@@ -23,6 +24,22 @@ export default async function ReportesPage({ searchParams }: { searchParams: Pro
     <>
       <PageHeader titulo="Reportes" subtitulo={rango} />
       {perfil.rol === 'lider_grupo' && <ReporteLiderGrupo perfil={perfil} periodo={periodo} semana={semana} sp={sp} />}
+      {perfil.rol === 'lider_red' && <ReporteLiderRed perfil={perfil} periodo={periodo} semana={semana} />}
+    </>
+  )
+}
+
+async function ReporteLiderRed({ perfil, periodo, semana }: { perfil: Perfil; periodo: Periodo; semana: string }) {
+  if (!perfil.red_id) {
+    return <EmptyState titulo="Aún no tienes una red asignada." detalle="Pide al líder admin que te asigne una red." />
+  }
+  const supabase = await createClient()
+  const datos = await cargarDatosReporte(supabase, { periodo, semanaActual: semana, redId: perfil.red_id })
+
+  return (
+    <>
+      <FiltroPeriodo periodo={periodo} params={{ periodo: String(periodo) }} />
+      <VistaRed resumen={construirResumen(datos, semana)} periodo={periodo} esLiderDeLaRed />
     </>
   )
 }
