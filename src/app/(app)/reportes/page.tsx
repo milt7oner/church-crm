@@ -1,14 +1,20 @@
-import { FiltroBotones, type ParamsReporte } from '@/components/reportes-vistas/Filtros'
+import Link from 'next/link'
+import { FiltroBotones, hrefCon, type ParamsReporte } from '@/components/reportes-vistas/Filtros'
+import SelectorRed from '@/components/reportes-vistas/SelectorRed'
 import VistaGrupo from '@/components/reportes-vistas/VistaGrupo'
+import VistaIglesia from '@/components/reportes-vistas/VistaIglesia'
 import VistaRed from '@/components/reportes-vistas/VistaRed'
 import EmptyState from '@/components/ui/EmptyState'
 import PageHeader from '@/components/ui/PageHeader'
 import { requirePerfil } from '@/lib/auth/perfil'
 import { construirResumen, PERIODOS, periodoDesdeParam, semanasHasta, type Periodo } from '@/lib/estadisticas'
+import { esTipoRed, TIPO_RED_LABEL, TIPOS_RED } from '@/lib/redes'
 import { cargarDatosReporte } from '@/lib/reportes/datos'
+import { esAdmin } from '@/lib/roles'
 import { etiquetaFecha, semanaActual, sumarDias } from '@/lib/semana'
 import { createClient } from '@/lib/supabase/server'
 import type { Perfil } from '@/lib/types'
+import { btnLink } from '@/lib/ui'
 
 type SearchParams = { periodo?: string; grupo?: string; red?: string; tipo?: string }
 
@@ -25,6 +31,46 @@ export default async function ReportesPage({ searchParams }: { searchParams: Pro
       <PageHeader titulo="Reportes" subtitulo={rango} />
       {perfil.rol === 'lider_grupo' && <ReporteLiderGrupo perfil={perfil} periodo={periodo} semana={semana} sp={sp} />}
       {perfil.rol === 'lider_red' && <ReporteLiderRed perfil={perfil} periodo={periodo} semana={semana} />}
+      {esAdmin(perfil.rol) && <ReporteIglesia periodo={periodo} semana={semana} sp={sp} />}
+    </>
+  )
+}
+
+const OPCIONES_TIPO = [{ valor: '', label: 'Todas' }, ...TIPOS_RED.map((t) => ({ valor: t, label: TIPO_RED_LABEL[t] }))]
+
+async function ReporteIglesia({ periodo, semana, sp }: { periodo: Periodo; semana: string; sp: SearchParams }) {
+  const supabase = await createClient()
+  const tipo = esTipoRed(sp.tipo) ? sp.tipo : null
+  let consultaRedes = supabase.from('redes').select('id, nombre').eq('activo', true).order('nombre')
+  if (tipo) consultaRedes = consultaRedes.eq('tipo', tipo)
+  const { data: redes } = await consultaRedes
+  const red = (redes ?? []).find((r) => r.id === sp.red) ?? null
+
+  const datos = await cargarDatosReporte(supabase, { periodo, semanaActual: semana, tipo, redId: red?.id })
+  const resumen = construirResumen(datos, semana)
+  const params = { periodo: String(periodo), tipo: tipo ?? undefined, red: red?.id }
+
+  return (
+    <>
+      <div className="space-y-3">
+        <FiltroPeriodo periodo={periodo} params={params} />
+        <FiltroBotones titulo="Tipo de red" param="tipo" opciones={OPCIONES_TIPO} actual={tipo ?? ''} params={{ ...params, red: undefined }} />
+        <SelectorRed redes={redes ?? []} actual={red?.id ?? ''} params={params} />
+      </div>
+
+      {red ? (
+        <>
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <h3 className="text-base font-bold text-gray-800">{red.nombre}</h3>
+            <Link href={hrefCon(params, { red: '' })} className={btnLink}>
+              ← Ver toda la iglesia
+            </Link>
+          </div>
+          <VistaRed resumen={resumen} periodo={periodo} esLiderDeLaRed={false} />
+        </>
+      ) : (
+        <VistaIglesia resumen={resumen} periodo={periodo} params={params} mostrarPorTipo={!tipo} />
+      )}
     </>
   )
 }
