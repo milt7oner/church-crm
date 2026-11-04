@@ -76,9 +76,14 @@ describe('reportes-actions', () => {
       expect(reportes.upsert).not.toHaveBeenCalled()
     })
 
-    it('rejects a leader of another group', async () => {
-      mocks.actor = perfil('g2', 'lider_grupo', 'red-1')
-      expect(await guardarReporteGrupo(base)).toHaveProperty('error')
+    it.each([
+      ['a leader of another group', perfil('g2', 'lider_grupo', 'red-1')],
+      ['the network leader', perfil('rl1', 'lider_red', 'red-1')],
+      ['an admin', perfil('admin', 'lider_admin')],
+      ['the pastor', perfil('pastor', 'pastor')],
+    ])('rejects %s (only the group leader files the report)', async (_, actor) => {
+      mocks.actor = actor
+      expect(await guardarReporteGrupo(base)).toEqual({ error: 'Solo el líder del grupo puede llenar este reporte.' })
       expect(reportes.upsert).not.toHaveBeenCalled()
     })
   })

@@ -3,7 +3,7 @@
 import { revalidatePath } from 'next/cache'
 import { getPerfilActual } from '@/lib/auth/perfil'
 import { mensajeErrorDb, textoOpcional } from '@/lib/form'
-import { puedeGestionarGrupo, puedeReportarRed } from '@/lib/permisos'
+import { puedeReportarGrupo, puedeReportarRed } from '@/lib/permisos'
 import { esFechaIso, esSemanaValida, sumarDias } from '@/lib/semana'
 import { createClient } from '@/lib/supabase/server'
 import type { ActionResult } from '@/lib/types'
@@ -44,7 +44,7 @@ export async function guardarReporteGrupo(input: ReporteGrupoInput): Promise<Act
     .eq('id', input.grupoId)
     .eq('activo', true)
     .maybeSingle()
-  if (!grupo || !puedeGestionarGrupo(actor, grupo)) return { error: 'No tienes permisos sobre este grupo.' }
+  if (!grupo || !puedeReportarGrupo(actor, grupo)) return { error: 'Solo el líder del grupo puede llenar este reporte.' }
 
   const { data: miembros, error: miembrosError } = await supabase
     .from('miembros')

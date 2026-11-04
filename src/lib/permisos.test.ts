@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { puedeAdministrarGrupo, puedeGestionarGrupo, puedeGestionarLider, puedeReportarRed } from './permisos'
+import { puedeAdministrarGrupo, puedeGestionarGrupo, puedeGestionarLider, puedeReportarGrupo, puedeReportarRed } from './permisos'
 import { esAdmin, rolesQuePuedeCrear } from './roles'
 import type { Rol } from './roles'
 
@@ -86,5 +86,16 @@ describe('puedeReportarRed', () => {
     expect(puedeReportarRed(liderRed1, 'red-2')).toBe(false)
     expect(puedeReportarRed(pastor, 'red-1')).toBe(false)
     expect(puedeReportarRed(liderGrupo1, 'red-1')).toBe(false)
+  })
+})
+
+describe('puedeReportarGrupo', () => {
+  it('only allows the group own leader; everyone else views', () => {
+    expect(puedeReportarGrupo(liderGrupo1, grupo1)).toBe(true)
+    expect(puedeReportarGrupo(liderGrupo2, grupo1)).toBe(false)
+    expect(puedeReportarGrupo(liderRed1, grupo1)).toBe(false)
+    expect(puedeReportarGrupo(admin, grupo1)).toBe(false)
+    expect(puedeReportarGrupo(pastor, grupo1)).toBe(false)
+    expect(puedeReportarGrupo(liderGrupo1, { ...grupo1, iglesia_id: 'iglesia-2' })).toBe(false)
   })
 })

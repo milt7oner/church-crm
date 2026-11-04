@@ -81,4 +81,9 @@ export function etiquetaFecha(fecha: string): string {
   return `${date.getUTCDate()} ${MESES[date.getUTCMonth()]} ${date.getUTCFullYear()}`
 }
 
+/** Local date label of a timestamp, e.g. "4 nov 2026". */
+export function etiquetaMarcaTiempo(timestamp: string): string {
+  return etiquetaFecha(hoy(new Date(timestamp)))
+}
+
 export const DIAS_SEMANA = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'] as const
