@@ -41,7 +41,7 @@ export default async function GrupoDetallePage({ params }: { params: Promise<{ i
       .order('nombre_completo'),
     supabase
       .from('reportes_grupo')
-      .select('id, semana, fecha_reunion, tema, novedades, created_at, updated_at, reportes_grupo_asistencia(asistio)')
+      .select('id, semana, fecha_reunion, tema, novedades, visitantes, created_at, updated_at, reportes_grupo_asistencia(asistio)')
       .eq('grupo_id', id)
       .order('semana', { ascending: false })
       .limit(8),
@@ -124,6 +124,7 @@ export default async function GrupoDetallePage({ params }: { params: Promise<{ i
                     <div className="flex items-center gap-3">
                       <span className={badgeOk}>
                         {asistentes}/{r.reportes_grupo_asistencia.length} asistieron
+                        {r.visitantes > 0 && ` + ${r.visitantes} visitantes`}
                       </span>
                       <Link href={`/grupos/${id}/reporte?semana=${r.semana}`} className={btnLink}>
                         {editable ? 'Editar' : 'Ver'}

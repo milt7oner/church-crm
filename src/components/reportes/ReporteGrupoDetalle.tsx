@@ -7,6 +7,7 @@ type ReporteGrupoDetalleProps = {
     fecha_reunion: string | null
     tema: string | null
     novedades: string | null
+    visitantes: number
     created_at: string
     updated_at: string
   }
@@ -30,6 +31,12 @@ export default function ReporteGrupoDetalle({ reporte, autor, asistencia }: Repo
             <dt className="text-[11px] font-semibold text-gray-500 uppercase tracking-wide">Tema</dt>
             <dd className="text-gray-800">{reporte.tema || '—'}</dd>
           </div>
+          <div>
+            <dt className="text-[11px] font-semibold text-gray-500 uppercase tracking-wide">Asistencia total</dt>
+            <dd className="text-gray-800">
+              {asistentes + reporte.visitantes} personas ({asistentes} miembros · {reporte.visitantes} visitantes)
+            </dd>
+          </div>
           <div className="sm:col-span-2">
             <dt className="text-[11px] font-semibold text-gray-500 uppercase tracking-wide">Novedades</dt>
             <dd className="text-gray-800 whitespace-pre-line">{reporte.novedades || 'Sin novedades'}</dd>
@@ -40,7 +47,7 @@ export default function ReporteGrupoDetalle({ reporte, autor, asistencia }: Repo
 
       <section className="space-y-2">
         <h3 className="text-sm font-bold text-gray-700">
-          Asistencia ({asistentes} de {asistencia.length})
+          Miembros que asistieron ({asistentes} de {asistencia.length})
         </h3>
         <ListaMarcada items={asistencia.map((a) => ({ titulo: a.nombre, marcado: a.asistio }))} vacio="No hay asistencia registrada." />
       </section>

@@ -164,6 +164,8 @@ describe('RLS', () => {
         ).toBe(false)
         expect(await fails(`insert into reportes_grupo (grupo_id, semana) values ('${GRUPO_2}', '2026-11-02')`)).toBe(true)
         expect(await updated(`update reportes_grupo set tema = 'Fe y obras' where id = '${REPORTE_GRUPO_1}'`)).toBe(1)
+        expect(await updated(`update reportes_grupo set visitantes = 4 where id = '${REPORTE_GRUPO_1}'`)).toBe(1)
+        expect(await fails(`update reportes_grupo set visitantes = -1 where id = '${REPORTE_GRUPO_1}'`)).toBe(true)
       }))
 
     it('can edit group details but not reassign or move the group', () =>

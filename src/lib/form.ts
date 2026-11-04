@@ -22,6 +22,9 @@ export function horaOpcional(value: unknown): string | null {
 
 export const PASSWORD_MIN = 6
 
+/** Mirrors the reportes_grupo_visitantes_rango check constraint. */
+export const VISITANTES_MAX = 500
+
 /** Maps Postgres errors to messages the user can act on. */
 export function mensajeErrorDb(error: { code?: string; message: string }): string {
   if (error.message.includes('perfiles_un_lider_por_red')) return 'Esa red ya tiene un líder de red activo.'
