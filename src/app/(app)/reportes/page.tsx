@@ -14,7 +14,7 @@ import { esAdmin } from '@/lib/roles'
 import { etiquetaFecha, semanaActual, sumarDias } from '@/lib/semana'
 import { createClient } from '@/lib/supabase/server'
 import type { Perfil } from '@/lib/types'
-import { btnLink } from '@/lib/ui'
+import { btnLink, btnPrimary, card } from '@/lib/ui'
 
 type SearchParams = { periodo?: string; grupo?: string; red?: string; tipo?: string }
 
@@ -56,6 +56,18 @@ async function ReporteIglesia({ periodo, semana, sp }: { periodo: Periodo; seman
         <FiltroPeriodo periodo={periodo} params={params} />
         <FiltroBotones titulo="Tipo de red" param="tipo" opciones={OPCIONES_TIPO} actual={tipo ?? ''} params={{ ...params, red: undefined }} />
         <SelectorRed redes={redes ?? []} actual={red?.id ?? ''} params={params} />
+      </div>
+
+      <div className={`${card} p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3`}>
+        <div>
+          <p className="text-sm font-bold text-gray-800">Descargar este reporte</p>
+          <p className="text-xs text-gray-500">
+            Archivo Excel con los filtros elegidos. Para abrirlo en Google Sheets, súbelo a tu Google Drive y ábrelo con Sheets.
+          </p>
+        </div>
+        <a href={hrefCon(params, {}, '/reportes/descargar')} download className={`${btnPrimary} min-h-11 inline-flex items-center justify-center text-sm`}>
+          ⬇ Descargar Excel
+        </a>
       </div>
 
       {red ? (
