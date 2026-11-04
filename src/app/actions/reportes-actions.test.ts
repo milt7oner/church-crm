@@ -64,6 +64,18 @@ describe('reportes-actions', () => {
       )
     })
 
+    it('stores the number of visitors', async () => {
+      mocks.actor = perfil('g1', 'lider_grupo', 'red-1')
+      expect(await guardarReporteGrupo({ ...base, visitantes: 3 })).toEqual({ success: true })
+      expect(reportes.upsert).toHaveBeenCalledWith(expect.objectContaining({ visitantes: 3 }), expect.anything())
+    })
+
+    it.each([-1, 501, 1.5])('rejects %s visitors', async (visitantes) => {
+      mocks.actor = perfil('g1', 'lider_grupo', 'red-1')
+      expect(await guardarReporteGrupo({ ...base, visitantes })).toEqual({ error: 'El número de visitantes debe estar entre 0 y 500.' })
+      expect(reportes.upsert).not.toHaveBeenCalled()
+    })
+
     it('drops a meeting date outside the reported week', async () => {
       mocks.actor = perfil('g1', 'lider_grupo', 'red-1')
       await guardarReporteGrupo({ ...base, fechaReunion: '2026-10-20' })

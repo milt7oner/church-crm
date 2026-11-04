@@ -14,6 +14,10 @@ Web app (PWA) to follow up on home groups ("Casas de Vida"): networks, groups, m
 Group members are records only; they do not log in. Leader accounts are created by whoever adds them.
 Deleting is a soft delete (`activo = false`) so attendance history is kept.
 
+**Reports** (`/reportes`): every role sees trends for its scope (attendance, visitors, report compliance,
+network follow-up and people to contact). The pastor and admin leaders can also download them as an
+Excel file (8 sheets) that opens in Google Sheets.
+
 ## Stack
 
 Next.js 16 (App Router) · React 19 · TypeScript · Tailwind CSS 4 · Supabase (Auth + Postgres with RLS) · pnpm.
@@ -42,5 +46,6 @@ Next.js 16 (App Router) · React 19 · TypeScript · Tailwind CSS 4 · Supabase 
 - `src/app/actions/` — server actions (each checks permissions before writing)
 - `src/lib/permisos.ts` — permission rules, mirrored by the RLS policies in the migration
 - `src/lib/semana.ts` — report weeks (Monday-based, America/Bogota)
+- `src/lib/estadisticas.ts` — report calculations (pure, tested); `src/lib/reportes/` — data loading and Excel sheets
 - `src/proxy.ts` — session check for every app route
 - `supabase/` — migrations, how to apply them, and RLS tests

@@ -2,7 +2,7 @@
 
 import { revalidatePath } from 'next/cache'
 import { getPerfilActual } from '@/lib/auth/perfil'
-import { mensajeErrorDb, textoOpcional } from '@/lib/form'
+import { mensajeErrorDb, textoOpcional, VISITANTES_MAX } from '@/lib/form'
 import { puedeReportarGrupo, puedeReportarRed } from '@/lib/permisos'
 import { esFechaIso, esSemanaValida, sumarDias } from '@/lib/semana'
 import { createClient } from '@/lib/supabase/server'
@@ -14,6 +14,8 @@ export type ReporteGrupoInput = {
   fechaReunion?: string
   tema?: string
   novedades?: string
+  /** People who attended but are not registered members. */
+  visitantes?: number
   /** Ids of the members who attended. */
   asistentes: string[]
 }
@@ -36,6 +38,10 @@ export async function guardarReporteGrupo(input: ReporteGrupoInput): Promise<Act
   const actor = await getPerfilActual()
   if (!actor) return { error: 'No autenticado.' }
   if (!esSemanaValida(input.semana)) return { error: 'La semana seleccionada no es válida.' }
+  const visitantes = input.visitantes ?? 0
+  if (!Number.isInteger(visitantes) || visitantes < 0 || visitantes > VISITANTES_MAX) {
+    return { error: `El número de visitantes debe estar entre 0 y ${VISITANTES_MAX}.` }
+  }
 
   const supabase = await createClient()
   const { data: grupo } = await supabase
@@ -62,6 +68,7 @@ export async function guardarReporteGrupo(input: ReporteGrupoInput): Promise<Act
         fecha_reunion: fechaDentroDeSemana(input.fechaReunion, input.semana),
         tema: textoOpcional(input.tema),
         novedades: textoOpcional(input.novedades),
+        visitantes,
         created_by: actor.id,
         updated_at: new Date().toISOString(),
       },

@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import EmptyState from '@/components/ui/EmptyState'
 import PageHeader from '@/components/ui/PageHeader'
+import Stat from '@/components/ui/Stat'
 import { requirePerfil } from '@/lib/auth/perfil'
 import { esAdmin } from '@/lib/roles'
 import { etiquetaSemana, semanaActual } from '@/lib/semana'
@@ -21,15 +22,6 @@ export default async function InicioPage() {
       {perfil.rol === 'lider_red' && <InicioLiderRed perfil={perfil} semana={semana} />}
       {perfil.rol === 'lider_grupo' && <InicioLiderGrupo perfil={perfil} semana={semana} />}
     </>
-  )
-}
-
-function Stat({ label, value }: { label: string; value: React.ReactNode }) {
-  return (
-    <div className={`${card} p-4`}>
-      <p className="text-[11px] font-semibold text-gray-500 uppercase tracking-wide">{label}</p>
-      <p className="text-2xl font-bold text-gray-800 mt-1">{value}</p>
-    </div>
   )
 }
 

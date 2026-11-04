@@ -37,7 +37,7 @@ export default async function ReporteGrupoPage({
     supabase
       .from('reportes_grupo')
       .select(
-        'fecha_reunion, tema, novedades, created_at, updated_at, perfiles(nombre_completo), reportes_grupo_asistencia(miembro_id, asistio, miembros(nombre_completo))'
+        'fecha_reunion, tema, novedades, visitantes, created_at, updated_at, perfiles(nombre_completo), reportes_grupo_asistencia(miembro_id, asistio, miembros(nombre_completo))'
       )
       .eq('grupo_id', id)
       .eq('semana', semana)
@@ -73,6 +73,7 @@ export default async function ReporteGrupoPage({
             fechaReunion: reporte?.fecha_reunion ?? fechaMax,
             tema: reporte?.tema ?? '',
             novedades: reporte?.novedades ?? '',
+            visitantes: reporte?.visitantes ?? 0,
             asistentes: asistencia.filter((a) => a.asistio).map((a) => a.miembro_id),
           }}
         />

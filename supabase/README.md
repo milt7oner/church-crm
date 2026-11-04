@@ -71,3 +71,12 @@ create policy reportes_grupo_asistencia_all on public.reportes_grupo_asistencia 
 drop function public.puede_reportar_grupo(uuid);
 commit;
 ```
+
+## `20261105000000_reportes_visitantes.sql`
+
+Adds `reportes_grupo.visitantes` (people at the meeting who are not registered members, 0–500,
+default 0). To roll it back:
+
+```sql
+alter table public.reportes_grupo drop column if exists visitantes;
+```
