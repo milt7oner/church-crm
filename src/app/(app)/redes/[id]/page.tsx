@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { NuevoGrupoBoton } from '@/components/grupos/GrupoBotones'
+import { textoEnvio } from '@/components/reportes/ReporteMeta'
 import EmptyState from '@/components/ui/EmptyState'
 import PageHeader from '@/components/ui/PageHeader'
 import { requirePerfil } from '@/lib/auth/perfil'
@@ -27,7 +28,7 @@ export default async function RedDetallePage({ params }: { params: Promise<{ id:
     supabase.from('grupos').select('id, nombre, lider_grupo_id').eq('red_id', id).eq('activo', true).order('nombre'),
     supabase
       .from('reportes_red')
-      .select('id, semana, novedades, reportes_red_grupos(grupo_id)')
+      .select('id, semana, novedades, created_at, updated_at, reportes_red_grupos(grupo_id)')
       .eq('red_id', id)
       .order('semana', { ascending: false })
       .limit(8),
@@ -109,13 +110,12 @@ export default async function RedDetallePage({ params }: { params: Promise<{ id:
                   <p className="text-sm font-semibold text-gray-800">{etiquetaSemana(r.semana)}</p>
                   <div className="flex items-center gap-3">
                     <span className={badgeOk}>{r.reportes_red_grupos.length} grupos con seguimiento</span>
-                    {puedeReportarRed(perfil, red.id) && (
-                      <Link href={`/redes/${red.id}/reporte?semana=${r.semana}`} className={btnLink}>
-                        Editar
-                      </Link>
-                    )}
+                    <Link href={`/redes/${red.id}/reporte?semana=${r.semana}`} className={btnLink}>
+                      {puedeReportarRed(perfil, red.id) ? 'Editar' : 'Ver'}
+                    </Link>
                   </div>
                 </div>
+                <p className="text-xs text-gray-500">{textoEnvio(r)}</p>
                 {r.novedades && <p className="text-xs text-gray-600 whitespace-pre-line">{r.novedades}</p>}
               </div>
             ))}

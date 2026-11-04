@@ -1,5 +1,5 @@
 // App-level permission rules. They mirror the RLS policies in
-// supabase/migrations/20261102000000_casas_de_vida.sql so server actions can
+// supabase/migrations so server actions can
 // return friendly errors before hitting the database.
 import { esAdmin, rolesQuePuedeCrear } from './roles'
 import type { Grupo, Perfil } from './types'
@@ -24,7 +24,7 @@ export function puedeAdministrarGrupo(actor: Actor, grupo: Omit<GrupoScope, 'lid
   return actor.rol === 'lider_red' && actor.red_id !== null && grupo.red_id === actor.red_id
 }
 
-/** Edit group details, manage its members and fill its weekly report. */
+/** View the group and its reports, edit its details and manage its members. */
 export function puedeGestionarGrupo(actor: Actor, grupo: GrupoScope): boolean {
   if (puedeAdministrarGrupo(actor, grupo)) return true
   return actor.iglesia_id === grupo.iglesia_id && grupo.lider_grupo_id === actor.id
@@ -33,4 +33,9 @@ export function puedeGestionarGrupo(actor: Actor, grupo: GrupoScope): boolean {
 /** Only the network's own leader files its weekly report. */
 export function puedeReportarRed(actor: Actor, redId: string): boolean {
   return actor.rol === 'lider_red' && actor.red_id === redId
+}
+
+/** Only the group's own leader files or edits its weekly report; others may only view it. */
+export function puedeReportarGrupo(actor: Actor, grupo: GrupoScope): boolean {
+  return actor.iglesia_id === grupo.iglesia_id && grupo.lider_grupo_id === actor.id
 }

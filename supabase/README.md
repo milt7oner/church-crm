@@ -49,3 +49,25 @@ alter table public.redes drop column if exists tipo, drop column if exists descr
 drop type if exists public.tipo_red;
 commit;
 ```
+
+## `20261104000000_reportes_solo_autor.sql`
+
+Only the group's own leader can file or edit its weekly report; network leaders, admins and the
+pastor get read-only access. To roll it back (restores the previous policies):
+
+```sql
+begin;
+drop policy reportes_grupo_insert on public.reportes_grupo;
+drop policy reportes_grupo_update on public.reportes_grupo;
+drop policy reportes_grupo_asistencia_select on public.reportes_grupo_asistencia;
+drop policy reportes_grupo_asistencia_write on public.reportes_grupo_asistencia;
+create policy reportes_grupo_insert on public.reportes_grupo for insert to authenticated
+  with check (public.puede_gestionar_grupo(grupo_id));
+create policy reportes_grupo_update on public.reportes_grupo for update to authenticated
+  using (public.puede_gestionar_grupo(grupo_id)) with check (public.puede_gestionar_grupo(grupo_id));
+create policy reportes_grupo_asistencia_all on public.reportes_grupo_asistencia for all to authenticated
+  using (exists (select 1 from public.reportes_grupo r where r.id = reporte_id and public.puede_gestionar_grupo(r.grupo_id)))
+  with check (exists (select 1 from public.reportes_grupo r where r.id = reporte_id and public.puede_gestionar_grupo(r.grupo_id)));
+drop function public.puede_reportar_grupo(uuid);
+commit;
+```

@@ -2,15 +2,16 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { GrupoAcciones, type GrupoEditable } from '@/components/grupos/GrupoBotones'
 import { MiembroAcciones, NuevoMiembroBoton, type MiembroEditable } from '@/components/grupos/MiembroBotones'
+import { textoEnvio } from '@/components/reportes/ReporteMeta'
 import EmptyState from '@/components/ui/EmptyState'
 import PageHeader from '@/components/ui/PageHeader'
 import { requirePerfil } from '@/lib/auth/perfil'
 import { cargarOpcionesGrupo } from '@/lib/opciones'
-import { puedeAdministrarGrupo, puedeGestionarGrupo } from '@/lib/permisos'
-import { etiquetaSemana, hoy, semanaActual } from '@/lib/semana'
+import { puedeAdministrarGrupo, puedeGestionarGrupo, puedeReportarGrupo } from '@/lib/permisos'
+import { etiquetaFecha, etiquetaSemana, hoy, semanaActual } from '@/lib/semana'
 import { createClient } from '@/lib/supabase/server'
 import type { Grupo } from '@/lib/types'
-import { badgeOk, btnLink, btnPrimary, card } from '@/lib/ui'
+import { badgeOk, btnLink, btnPrimary, btnSecondary, card } from '@/lib/ui'
 
 export default async function GrupoDetallePage({ params }: { params: Promise<{ id: string }> }) {
   const perfil = await requirePerfil()
@@ -40,13 +41,14 @@ export default async function GrupoDetallePage({ params }: { params: Promise<{ i
       .order('nombre_completo'),
     supabase
       .from('reportes_grupo')
-      .select('id, semana, tema, novedades, reportes_grupo_asistencia(asistio)')
+      .select('id, semana, fecha_reunion, tema, novedades, created_at, updated_at, reportes_grupo_asistencia(asistio)')
       .eq('grupo_id', id)
       .order('semana', { ascending: false })
       .limit(8),
     cargarOpcionesGrupo(perfil),
   ])
 
+  const editable = puedeReportarGrupo(perfil, grupo)
   const reporteActual = (reportes ?? []).find((r) => r.semana === semana)
   const hoyIso = hoy()
   const reunion = [grupo.dia_reunion, grupo.hora_reunion?.slice(0, 5)].filter(Boolean).join(' ')
@@ -54,9 +56,17 @@ export default async function GrupoDetallePage({ params }: { params: Promise<{ i
   return (
     <>
       <PageHeader titulo={grupo.nombre} subtitulo={red?.nombre} volver={{ href: '/grupos', label: 'Grupos' }}>
-        <Link href={`/grupos/${id}/reporte`} className={btnPrimary}>
-          {reporteActual ? 'Editar reporte de la semana' : 'Llenar reporte de la semana'}
-        </Link>
+        {editable ? (
+          <Link href={`/grupos/${id}/reporte`} className={btnPrimary}>
+            {reporteActual ? 'Editar reporte de la semana' : 'Llenar reporte de la semana'}
+          </Link>
+        ) : (
+          reporteActual && (
+            <Link href={`/grupos/${id}/reporte`} className={btnSecondary}>
+              Ver reporte de la semana
+            </Link>
+          )
+        )}
       </PageHeader>
 
       <section className={`${card} p-4 space-y-3`}>
@@ -116,10 +126,13 @@ export default async function GrupoDetallePage({ params }: { params: Promise<{ i
                         {asistentes}/{r.reportes_grupo_asistencia.length} asistieron
                       </span>
                       <Link href={`/grupos/${id}/reporte?semana=${r.semana}`} className={btnLink}>
-                        Editar
+                        {editable ? 'Editar' : 'Ver'}
                       </Link>
                     </div>
                   </div>
+                  <p className="text-xs text-gray-500">
+                    Reunión: {r.fecha_reunion ? etiquetaFecha(r.fecha_reunion) : 'sin fecha'} · {textoEnvio(r)}
+                  </p>
                   {r.tema && <p className="text-xs text-gray-700">Tema: {r.tema}</p>}
                   {r.novedades && <p className="text-xs text-gray-500 whitespace-pre-line">{r.novedades}</p>}
                 </div>

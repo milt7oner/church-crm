@@ -56,6 +56,11 @@ async function names(sql: string): Promise<string> {
     .join(',')
 }
 
+/** Rows changed by an UPDATE/DELETE (RLS silently skips rows instead of failing). */
+async function updated(sql: string): Promise<number> {
+  return (await db.query(sql)).affectedRows ?? 0
+}
+
 async function fails(sql: string): Promise<boolean> {
   try {
     await db.query(sql)
@@ -158,6 +163,7 @@ describe('RLS', () => {
           await fails(`insert into reportes_grupo_asistencia values ('${REPORTE_GRUPO_1}', '${MIEMBRO_1}', true)`)
         ).toBe(false)
         expect(await fails(`insert into reportes_grupo (grupo_id, semana) values ('${GRUPO_2}', '2026-11-02')`)).toBe(true)
+        expect(await updated(`update reportes_grupo set tema = 'Fe y obras' where id = '${REPORTE_GRUPO_1}'`)).toBe(1)
       }))
 
     it('can edit group details but not reassign or move the group', () =>
@@ -208,6 +214,15 @@ describe('RLS', () => {
         expect(await fails(`insert into reportes_red (red_id, semana) values ('${RED_2}', '2026-11-02')`)).toBe(true)
       }))
 
+    it('reads the group reports of their network but cannot file or edit them', () =>
+      as(USER.liderRed1, async () => {
+        expect(await rows('select * from reportes_grupo_asistencia')).toHaveLength(1)
+        expect(await fails(`insert into reportes_grupo (grupo_id, semana) values ('${GRUPO_1}', '2026-10-26')`)).toBe(true)
+        expect(await updated(`update reportes_grupo set tema = 'x' where id = '${REPORTE_GRUPO_1}'`)).toBe(0)
+        expect(await updated(`update reportes_grupo_asistencia set asistio = false where reporte_id = '${REPORTE_GRUPO_1}'`)).toBe(0)
+        expect(await updated(`delete from reportes_grupo_asistencia where reporte_id = '${REPORTE_GRUPO_1}'`)).toBe(0)
+      }))
+
     it('rejects weeks that do not start on Monday', () =>
       as(USER.liderRed1, async () => {
         expect(await fails(`insert into reportes_red (red_id, semana) values ('${RED_1}', '2026-11-03')`)).toBe(true)
@@ -247,6 +262,14 @@ describe('RLS', () => {
     it('does not file network reports', () =>
       as(USER.admin, async () => {
         expect(await fails(`insert into reportes_red (red_id, semana) values ('${RED_2}', '2026-11-09')`)).toBe(true)
+        expect(await updated(`update reportes_red set novedades = 'x' where id = '${REPORTE_RED_1}'`)).toBe(0)
+      }))
+
+    it('reads group reports but cannot file or edit them', () =>
+      as(USER.admin, async () => {
+        expect(await rows('select * from reportes_grupo_asistencia')).toHaveLength(1)
+        expect(await fails(`insert into reportes_grupo (grupo_id, semana) values ('${GRUPO_2}', '2026-10-26')`)).toBe(true)
+        expect(await updated(`update reportes_grupo set tema = 'x' where id = '${REPORTE_GRUPO_1}'`)).toBe(0)
       }))
   })
 
